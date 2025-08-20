@@ -17,6 +17,18 @@
         .task-flow-item { border-left: 3px solid transparent; transition: all 0.3s ease; }
         .task-flow-item.active { border-left-color: #3b82f6; background: #eff6ff; }
         .smart-badge { background: linear-gradient(45deg, #a855f7, #ec4899); }
+        .ai-thinking { animation: thinking 1.5s infinite; }
+        .ai-typing { animation: typing 1s infinite; }
+        .confidence-high { background: linear-gradient(45deg, #10b981, #059669); }
+        .confidence-medium { background: linear-gradient(45deg, #f59e0b, #d97706); }
+        .confidence-low { background: linear-gradient(45deg, #ef4444, #dc2626); }
+        .requirement-priority { position: relative; overflow: hidden; }
+        .requirement-priority::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shimmer 2s infinite; }
+        .ai-insight-new { border-left: 4px solid #3b82f6; animation: slideInRight 0.6s ease-out; }
+        .learning-indicator { animation: learningPulse 2s infinite; }
+        .task-suggestion { background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); border: 1px solid #a5b4fc; }
+        .ai-confidence-visual { position: relative; }
+        .ai-confidence-visual::after { content: attr(data-confidence) '%'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; font-weight: 600; }
         
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(-20px); }
@@ -26,6 +38,36 @@
         @keyframes pulse {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.1); opacity: 0.7; }
+        }
+        
+        @keyframes thinking {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes typing {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes learningPulse {
+            0%, 100% { background-color: #e0e7ff; }
+            50% { background-color: #c7d2fe; }
+        }
+        
+        @keyframes progressGrow {
+            from { width: 0%; }
+            to { width: var(--target-width); }
         }
 
         /* Custom scrollbar */
@@ -45,9 +87,9 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <!-- AI Status Indicator -->
-                    <div class="flex items-center space-x-2 bg-green-50 px-3 py-2 rounded-lg">
+                    <div class="flex items-center space-x-2 bg-green-50 px-3 py-2 rounded-lg" id="ai-status">
                         <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
-                        <span class="text-sm text-green-700 font-medium">AI Assistant Active</span>
+                        <span class="text-sm text-green-700 font-medium" id="ai-status-text">AI Assistant Active</span>
                     </div>
                     <!-- Role Switcher -->
                     <div id="role-selector"></div>
@@ -77,9 +119,15 @@
                             <p class="text-white/80 text-sm">Based on your role and recent activity</p>
                         </div>
                     </div>
-                    <button class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition-all">
-                        Configure AI
-                    </button>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-2 text-white/80 text-sm">
+                            <span id="ai-thinking-indicator" class="ai-thinking">🧠</span>
+                            <span id="ai-thinking-text">Analyzing patterns...</span>
+                        </div>
+                        <button class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition-all" onclick="window.aiNavigator.configureAI()">
+                            Configure AI
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Smart Suggestions -->
@@ -102,16 +150,28 @@
                         <!-- Task flow items will be populated here -->
                     </div>
 
+                    <!-- AI-Driven Next Steps -->
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400" id="ai-next-steps">
+                        <div class="flex items-center mb-2">
+                            <span class="text-blue-600 mr-2">🎯</span>
+                            <span class="text-sm font-medium text-blue-800">AI Suggested Next Steps</span>
+                        </div>
+                        <div id="suggested-steps" class="space-y-2"></div>
+                    </div>
+                    
                     <!-- Progress Indicator -->
-                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-sm font-medium text-gray-700">Compliance Progress</span>
                             <span class="text-sm text-gray-600" id="progress-percentage">0%</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="prediction-bar rounded-full h-2 transition-all duration-500" id="progress-bar" style="width: 0%"></div>
+                            <div class="prediction-bar rounded-full h-2 transition-all duration-1000" id="progress-bar" style="width: 0%"></div>
                         </div>
                         <p class="text-xs text-gray-500 mt-2" id="progress-insight">Starting assessment...</p>
+                        <div class="mt-2">
+                            <div class="text-xs text-blue-600 font-medium" id="time-estimate">Estimated completion: --</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -129,9 +189,29 @@
                         <!-- Asset details will be populated here -->
                     </div>
 
+                    <!-- AI Analysis Panel -->
+                    <div class="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <span class="text-purple-600 mr-2">🤖</span>
+                                <span class="text-sm font-semibold text-gray-800">AI Smart Analysis</span>
+                            </div>
+                            <div class="text-xs text-gray-600" id="analysis-confidence">Confidence: --</div>
+                        </div>
+                        <div id="ai-analysis-content" class="text-sm text-gray-700">
+                            <div class="ai-thinking">Analyzing asset requirements...</div>
+                        </div>
+                    </div>
+                    
                     <!-- AI-Recommended Requirements -->
                     <div id="recommended-requirements">
-                        <h4 class="text-md font-semibold text-gray-800 mb-4">AI-Recommended Requirements</h4>
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-md font-semibold text-gray-800">AI-Prioritized Requirements</h4>
+                            <div class="flex items-center space-x-2">
+                                <div class="text-xs text-gray-600">Auto-updating</div>
+                                <div class="w-2 h-2 bg-blue-500 rounded-full pulse-dot"></div>
+                            </div>
+                        </div>
                         <div class="space-y-3" id="requirements-list">
                             <!-- Requirements will be populated here -->
                         </div>
@@ -150,6 +230,17 @@
                     <div class="space-y-4" id="predictive-insights">
                         <!-- Insights will be populated here -->
                     </div>
+                    
+                    <!-- Real-time AI Updates -->
+                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg" id="live-updates">
+                        <div class="flex items-center mb-2">
+                            <span class="text-yellow-600 mr-2 ai-typing">⚡</span>
+                            <span class="text-sm font-medium text-yellow-800">Live AI Updates</span>
+                        </div>
+                        <div id="live-updates-content" class="text-xs text-yellow-700">
+                            Monitoring compliance patterns...
+                        </div>
+                    </div>
                 </div>
 
                 <!-- AI Learning Panel -->
@@ -161,24 +252,50 @@
                     
                     <div class="space-y-3" id="learning-panel">
                         <div class="text-sm text-gray-600">
-                            <strong>Patterns Detected:</strong>
-                            <ul class="mt-2 space-y-1">
-                                <li>• You often start with security requirements</li>
-                                <li>• API projects need 85% more attention</li>
-                                <li>• Best assessment time: 2-3 PM</li>
-                            </ul>
+                            <strong>AI Learning Progress:</strong>
+                            <div class="mt-2 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs">Pattern Recognition</span>
+                                    <div class="w-16 bg-gray-200 rounded-full h-1">
+                                        <div class="bg-green-500 rounded-full h-1" style="width: 87%"></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs">Prediction Accuracy</span>
+                                    <div class="w-16 bg-gray-200 rounded-full h-1">
+                                        <div class="bg-blue-500 rounded-full h-1" style="width: 93%"></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs">User Adaptation</span>
+                                    <div class="w-16 bg-gray-200 rounded-full h-1">
+                                        <div class="bg-purple-500 rounded-full h-1" style="width: 76%"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="border-t pt-3">
-                            <strong class="text-sm text-gray-700">Suggestions for Improvement:</strong>
+                            <strong class="text-sm text-gray-700">Dynamic Insights:</strong>
+                            <div class="mt-2 space-y-2" id="dynamic-insights">
+                                <!-- Dynamic insights will be populated -->
+                            </div>
+                        </div>
+                        
+                        <div class="border-t pt-3">
+                            <strong class="text-sm text-gray-700">Personal AI Model:</strong>
                             <div class="mt-2 text-xs text-gray-600 space-y-1">
-                                <div class="flex items-center">
-                                    <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
-                                    Consider batch processing similar assessments
+                                <div class="flex items-center justify-between">
+                                    <span>Sessions Analyzed</span>
+                                    <span class="font-medium" id="sessions-count">47</span>
                                 </div>
-                                <div class="flex items-center">
-                                    <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                                    Use templates for recurring patterns
+                                <div class="flex items-center justify-between">
+                                    <span>Accuracy Improvement</span>
+                                    <span class="font-medium text-green-600" id="accuracy-improvement">+23%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>Time Saved</span>
+                                    <span class="font-medium text-blue-600" id="time-saved">2.3 hrs</span>
                                 </div>
                             </div>
                         </div>
@@ -252,153 +369,408 @@
             }
 
             generateAISuggestions() {
+                // Dynamic AI suggestions based on current context and user patterns
+                const baseTime = new Date().getHours();
+                const timeBonus = (baseTime >= 14 && baseTime <= 15) ? 10 : 0; // User's preferred time
+                
                 const suggestions = [
                     {
                         icon: '⚡',
-                        title: 'Quick Security Check',
-                        description: 'Start with critical security requirements for your API',
-                        confidence: 95,
-                        action: () => this.executeAIAction('security-check')
+                        title: 'Smart Security Focus',
+                        description: `Perfect timing! Based on ${this.currentAsset?.type || 'current'} patterns, start with security`,
+                        confidence: Math.min(95 + timeBonus, 99),
+                        reasoning: 'You typically achieve 23% faster completion when starting with security at this time',
+                        action: () => this.executeAIAction('security-check'),
+                        priority: 'high',
+                        estimatedTime: '15-20 min'
                     },
                     {
                         icon: '🎯',
-                        title: 'Smart Assessment',
-                        description: 'Complete high-impact requirements first',
-                        confidence: 88,
-                        action: () => this.executeAIAction('smart-assessment')
+                        title: 'Adaptive Assessment',
+                        description: 'AI-optimized workflow based on your success patterns',
+                        confidence: 88 + (this.aiState.learningProgress.adaptation * 0.1),
+                        reasoning: 'Similar assets showed 91% compliance when following this sequence',
+                        action: () => this.executeAIAction('smart-assessment'),
+                        priority: 'medium',
+                        estimatedTime: '25-35 min'
                     },
                     {
-                        icon: '📊',
-                        title: 'Pattern Analysis',
-                        description: 'Review requirements based on similar projects',
-                        confidence: 76,
-                        action: () => this.executeAIAction('pattern-analysis')
+                        icon: '🤖',
+                        title: 'Predictive Analysis',
+                        description: 'Leverage ML insights from 47 similar assessments',
+                        confidence: 76 + (this.aiState.learningProgress.prediction * 0.15),
+                        reasoning: 'Pattern matching shows 3 critical areas needing attention',
+                        action: () => this.executeAIAction('pattern-analysis'),
+                        priority: 'medium',
+                        estimatedTime: '10-15 min'
                     }
                 ];
 
                 const container = document.getElementById('ai-suggestions');
-                container.innerHTML = suggestions.map((suggestion, index) => `
-                    <div class="ai-suggestion bg-white/20 rounded-lg p-4 cursor-pointer hover:bg-white/30 transition-all"
-                         onclick="window.aiNavigator.executeSuggestion(${index})">
-                        <div class="flex items-center mb-2">
-                            <span class="text-2xl mr-2">${suggestion.icon}</span>
-                            <span class="text-sm font-medium">${suggestion.title}</span>
-                        </div>
-                        <p class="text-white/80 text-xs mb-2">${suggestion.description}</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-white/70">Confidence: ${suggestion.confidence}%</span>
-                            <div class="w-16 bg-white/20 rounded-full h-1">
-                                <div class="bg-white rounded-full h-1" style="width: ${suggestion.confidence}%"></div>
+                container.innerHTML = suggestions.map((suggestion, index) => {
+                    const confidenceClass = suggestion.confidence > 90 ? 'confidence-high' : 
+                                           suggestion.confidence > 75 ? 'confidence-medium' : 'confidence-low';
+                    
+                    return `
+                        <div class="ai-suggestion bg-white/20 rounded-lg p-4 cursor-pointer hover:bg-white/30 transition-all ai-card"
+                             onclick="window.aiNavigator.executeSuggestion(${index})">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center">
+                                    <span class="text-2xl mr-2">${suggestion.icon}</span>
+                                    <span class="text-sm font-medium">${suggestion.title}</span>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full ${
+                                    suggestion.priority === 'high' ? 'bg-red-100 text-red-600' :
+                                    'bg-yellow-100 text-yellow-600'
+                                }">${suggestion.priority}</span>
+                            </div>
+                            <p class="text-white/80 text-xs mb-2">${suggestion.description}</p>
+                            <div class="text-white/70 text-xs mb-2 italic">"${suggestion.reasoning}"</div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-white/70">Confidence: ${Math.round(suggestion.confidence)}%</span>
+                                    <span class="text-xs text-white/60">${suggestion.estimatedTime}</span>
+                                </div>
+                                <div class="w-20 bg-white/20 rounded-full h-2 ai-confidence-visual" data-confidence="${Math.round(suggestion.confidence)}">
+                                    <div class="${confidenceClass} rounded-full h-2 transition-all duration-1000" style="width: ${suggestion.confidence}%"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 this.aiSuggestions = suggestions;
             }
 
             createTaskFlow() {
+                // AI-optimized task sequence based on user patterns and asset type
+                const assetComplexity = this.currentAsset ? this.calculateAssetComplexity(this.currentAsset) : 1;
+                const userEfficiency = this.userPatterns.adaptationScores.taskPrediction;
+                
                 const tasks = [
-                    { id: 'asset-selection', title: 'Select Asset', status: 'completed', aiScore: 100 },
-                    { id: 'requirements-analysis', title: 'Analyze Requirements', status: 'active', aiScore: 85 },
-                    { id: 'risk-assessment', title: 'Assess Risks', status: 'pending', aiScore: 70 },
-                    { id: 'compliance-check', title: 'Check Compliance', status: 'pending', aiScore: 60 },
-                    { id: 'documentation', title: 'Generate Documentation', status: 'pending', aiScore: 45 }
+                    { 
+                        id: 'asset-selection', 
+                        title: 'Select Asset', 
+                        status: 'completed', 
+                        aiScore: 100,
+                        aiReasoning: 'Asset context established',
+                        estimatedTime: 0,
+                        completedTime: 2
+                    },
+                    { 
+                        id: 'requirements-analysis', 
+                        title: 'AI-Guided Requirements Analysis', 
+                        status: 'active', 
+                        aiScore: Math.round(85 * userEfficiency * assetComplexity),
+                        aiReasoning: `Optimized for ${this.currentAsset?.type || 'current'} assets based on your patterns`,
+                        estimatedTime: Math.round(20 * assetComplexity),
+                        priority: 'high'
+                    },
+                    { 
+                        id: 'risk-assessment', 
+                        title: 'Predictive Risk Assessment', 
+                        status: 'pending', 
+                        aiScore: Math.round(70 * userEfficiency),
+                        aiReasoning: 'AI will highlight likely risk areas first',
+                        estimatedTime: Math.round(15 * assetComplexity),
+                        priority: 'medium'
+                    },
+                    { 
+                        id: 'compliance-check', 
+                        title: 'Smart Compliance Validation', 
+                        status: 'pending', 
+                        aiScore: Math.round(60 * userEfficiency),
+                        aiReasoning: 'Automated checks for common compliance gaps',
+                        estimatedTime: Math.round(10 * assetComplexity),
+                        priority: 'medium'
+                    },
+                    { 
+                        id: 'documentation', 
+                        title: 'AI-Generated Documentation', 
+                        status: 'pending', 
+                        aiScore: Math.round(45 * userEfficiency),
+                        aiReasoning: 'Auto-generate based on assessment results',
+                        estimatedTime: 5,
+                        priority: 'low'
+                    }
                 ];
 
                 const container = document.getElementById('task-flow');
-                container.innerHTML = tasks.map(task => `
-                    <div class="task-flow-item p-3 rounded-lg cursor-pointer ${task.status === 'active' ? 'active' : ''}"
-                         onclick="window.aiNavigator.selectTask('${task.id}')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                                    task.status === 'completed' ? 'bg-green-100 text-green-600' :
-                                    task.status === 'active' ? 'bg-blue-100 text-blue-600' :
-                                    'bg-gray-100 text-gray-400'
-                                }">
-                                    ${task.status === 'completed' ? '✓' : 
-                                      task.status === 'active' ? '⏳' : '⏸️'}
+                container.innerHTML = tasks.map(task => {
+                    const priorityBadge = task.priority ? `
+                        <span class="text-xs px-2 py-1 rounded-full ml-2 ${
+                            task.priority === 'high' ? 'bg-red-100 text-red-600' :
+                            task.priority === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                            'bg-gray-100 text-gray-600'
+                        }">${task.priority}</span>
+                    ` : '';
+                    
+                    return `
+                        <div class="task-flow-item p-4 rounded-lg cursor-pointer transition-all ${task.status === 'active' ? 'active requirement-priority' : ''}"
+                             onclick="window.aiNavigator.selectTask('${task.id}')">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
+                                        task.status === 'completed' ? 'bg-green-100 text-green-600' :
+                                        task.status === 'active' ? 'bg-blue-100 text-blue-600' :
+                                        'bg-gray-100 text-gray-400'
+                                    }">
+                                        ${task.status === 'completed' ? '✓' : 
+                                          task.status === 'active' ? '🤖' : '⏸️'}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center">
+                                            <span class="text-sm font-medium text-gray-800">${task.title}</span>
+                                            ${priorityBadge}
+                                        </div>
+                                        ${task.aiReasoning ? `<div class="text-xs text-gray-600 mt-1 italic">${task.aiReasoning}</div>` : ''}
+                                    </div>
                                 </div>
-                                <span class="text-sm font-medium text-gray-800">${task.title}</span>
                             </div>
-                            <div class="text-right">
-                                <div class="text-xs text-gray-600">AI: ${task.aiScore}%</div>
-                                <div class="w-12 bg-gray-200 rounded-full h-1 mt-1">
-                                    <div class="bg-blue-500 rounded-full h-1" style="width: ${task.aiScore}%"></div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-xs text-gray-600">AI Confidence: ${task.aiScore}%</div>
+                                    ${task.estimatedTime ? `<div class="text-xs text-blue-600">${task.estimatedTime}min</div>` : ''}
+                                </div>
+                                <div class="w-16 bg-gray-200 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full h-2 transition-all duration-1000" style="width: ${task.aiScore}%"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
+                
+                // Generate AI-suggested next steps
+                this.generateNextSteps(tasks);
 
                 this.taskFlow = tasks;
                 this.updateProgress();
             }
+            
+            calculateAssetComplexity(asset) {
+                let complexity = 1.0;
+                
+                // Type-based complexity
+                const typeComplexity = {
+                    'api': 1.3,
+                    'platform': 1.4,
+                    'web-app': 1.1,
+                    'mobile-app': 1.2
+                };
+                complexity *= typeComplexity[asset.type] || 1.0;
+                
+                // Technology stack complexity
+                if (asset.attributes?.technology?.length > 3) {
+                    complexity *= 1.2;
+                }
+                
+                // Compliance score impact
+                if (asset.complianceScore < 70) {
+                    complexity *= 1.3;
+                }
+                
+                return Math.min(complexity, 2.0); // Cap at 2x
+            }
+            
+            generateNextSteps(tasks) {
+                const activeTask = tasks.find(t => t.status === 'active');
+                const nextTask = tasks.find(t => t.status === 'pending');
+                
+                const steps = [];
+                
+                if (activeTask) {
+                    steps.push({
+                        icon: '🎯',
+                        text: `Focus on ${activeTask.title.toLowerCase()}`,
+                        confidence: activeTask.aiScore,
+                        action: 'current'
+                    });
+                }
+                
+                if (nextTask) {
+                    steps.push({
+                        icon: '➡️',
+                        text: `Prepare for ${nextTask.title.toLowerCase()}`,
+                        confidence: nextTask.aiScore,
+                        action: 'next'
+                    });
+                }
+                
+                // AI optimization suggestion
+                steps.push({
+                    icon: '🤖',
+                    text: 'Consider parallel processing of low-risk items',
+                    confidence: 82,
+                    action: 'optimize'
+                });
+                
+                const container = document.getElementById('suggested-steps');
+                container.innerHTML = steps.map(step => `
+                    <div class="flex items-center justify-between p-2 bg-white rounded border">
+                        <div class="flex items-center">
+                            <span class="mr-2">${step.icon}</span>
+                            <span class="text-xs text-blue-800">${step.text}</span>
+                        </div>
+                        <span class="text-xs text-gray-600">${step.confidence}%</span>
+                    </div>
+                `).join('');
+            }
 
             generatePredictiveInsights() {
-                const insights = [
+                // Dynamic insights based on current context and AI learning
+                const assetType = this.currentAsset?.type || 'unknown';
+                const userEfficiency = this.userPatterns.adaptationScores.taskPrediction;
+                const timeOfDay = new Date().getHours();
+                
+                const baseInsights = [
                     {
                         icon: '🎯',
-                        title: 'Risk Prediction',
-                        description: 'High probability of compliance issues in API security',
-                        likelihood: 78,
+                        title: 'Smart Risk Prediction',
+                        description: `${assetType === 'api' ? 'API authentication' : 'Data validation'} requires attention based on ML analysis`,
+                        likelihood: Math.round(78 + (userEfficiency * 20)),
                         impact: 'high',
-                        action: 'Review MFA implementation'
+                        action: 'Review security implementation',
+                        reasoning: `ML model trained on ${this.aiState.sessionsAnalyzed} similar assessments`,
+                        trend: 'increasing'
                     },
                     {
                         icon: '⏱️',
-                        title: 'Time Estimate',
-                        description: 'Assessment completion predicted in 2.5 hours',
-                        likelihood: 85,
+                        title: 'Intelligent Time Prediction',
+                        description: `Assessment completion predicted in ${this.calculatePredictedTime()} based on your patterns`,
+                        likelihood: 85 + (timeOfDay >= 14 && timeOfDay <= 16 ? 10 : 0),
                         impact: 'medium',
-                        action: 'Schedule focused work time'
+                        action: 'Optimize workflow sequence',
+                        reasoning: 'Based on your historical performance and current context',
+                        trend: 'stable'
                     },
                     {
                         icon: '💡',
-                        title: 'Optimization Opportunity',
-                        description: 'Similar patterns found in 3 other projects',
+                        title: 'Pattern-Based Optimization',
+                        description: `Similar ${assetType} projects show 23% time savings with prioritized approach`,
                         likelihood: 92,
                         impact: 'medium',
-                        action: 'Create reusable template'
+                        action: 'Apply learned patterns',
+                        reasoning: 'Cross-project pattern analysis reveals optimization opportunities',
+                        trend: 'improving'
+                    },
+                    {
+                        icon: '🚀',
+                        title: 'Productivity Boost',
+                        description: 'AI suggests parallel processing of 3 low-complexity requirements',
+                        likelihood: 88,
+                        impact: 'high',
+                        action: 'Enable parallel workflow',
+                        reasoning: 'Dependency analysis shows safe parallelization opportunities',
+                        trend: 'new'
                     }
                 ];
+                
+                // Select most relevant insights
+                const insights = baseInsights.slice(0, 3);
 
                 const container = document.getElementById('predictive-insights');
-                container.innerHTML = insights.map(insight => `
-                    <div class="p-3 border border-gray-200 rounded-lg">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex items-center">
-                                <span class="text-lg mr-2">${insight.icon}</span>
-                                <span class="text-sm font-medium text-gray-800">${insight.title}</span>
+                container.innerHTML = insights.map((insight, index) => {
+                    const trendIcon = insight.trend === 'increasing' ? '📈' :
+                                     insight.trend === 'improving' ? '✨' :
+                                     insight.trend === 'new' ? '🆕' : '📋';
+                    
+                    const confidenceClass = insight.likelihood > 90 ? 'confidence-high' :
+                                           insight.likelihood > 75 ? 'confidence-medium' : 'confidence-low';
+                    
+                    return `
+                        <div class="p-4 border border-gray-200 rounded-lg ai-card hover:shadow-md transition-all cursor-pointer"
+                             onclick="window.aiNavigator.exploreInsight(${index})">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center">
+                                    <span class="text-lg mr-2">${insight.icon}</span>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-800">${insight.title}</span>
+                                        <span class="ml-2 text-xs">${trendIcon}</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full ${
+                                    insight.impact === 'high' ? 'bg-red-100 text-red-600' :
+                                    insight.impact === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                                    'bg-green-100 text-green-600'
+                                }">${insight.impact}</span>
                             </div>
-                            <span class="text-xs px-2 py-1 rounded-full ${
-                                insight.impact === 'high' ? 'bg-red-100 text-red-600' :
-                                insight.impact === 'medium' ? 'bg-yellow-100 text-yellow-600' :
-                                'bg-green-100 text-green-600'
-                            }">${insight.impact}</span>
+                            <p class="text-xs text-gray-600 mb-2">${insight.description}</p>
+                            <div class="text-xs text-purple-600 italic mb-2">"${insight.reasoning}"</div>
+                            <div class="flex justify-between items-center">
+                                <button class="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                                    ${insight.action} →
+                                </button>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-gray-500">${insight.likelihood}% confidence</span>
+                                    <div class="w-12 bg-gray-200 rounded-full h-1">
+                                        <div class="${confidenceClass} rounded-full h-1" style="width: ${insight.likelihood}%"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-600 mb-2">${insight.description}</p>
-                        <div class="flex justify-between items-center">
-                            <button class="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                                ${insight.action} →
-                            </button>
-                            <span class="text-xs text-gray-500">${insight.likelihood}% confidence</span>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 this.predictiveInsights = insights;
+            }
+            
+            calculatePredictedTime() {
+                const baseTime = this.userPatterns.averageAssessmentTime;
+                const assetComplexity = this.currentAsset ? this.calculateAssetComplexity(this.currentAsset) : 1;
+                const timeOfDay = new Date().getHours();
+                
+                let adjustedTime = baseTime * assetComplexity;
+                
+                // Time of day adjustment based on user patterns
+                if (timeOfDay >= 14 && timeOfDay <= 16) {
+                    adjustedTime *= 0.85; // User's peak performance time
+                } else if (timeOfDay < 10 || timeOfDay > 18) {
+                    adjustedTime *= 1.2; // Less efficient times
+                }
+                
+                const hours = Math.floor(adjustedTime / 60);
+                const minutes = Math.round(adjustedTime % 60);
+                
+                return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+            }
+            
+            exploreInsight(insightIndex) {
+                const insight = this.predictiveInsights[insightIndex];
+                trackInteraction('ai_insight_explore', { insight: insight.title });
+                
+                // Simulate AI deep dive analysis
+                this.updateAIStatus('analyzing', `Deep-diving into ${insight.title.toLowerCase()}...`);
+                
+                setTimeout(() => {
+                    const detailedInsights = [
+                        'Found 12 related patterns across projects',
+                        'Confidence increased to 97% based on new data',
+                        'Implementation strategy optimized for your workflow',
+                        'Risk mitigation plan generated automatically'
+                    ];
+                    
+                    const randomDetail = detailedInsights[Math.floor(Math.random() * detailedInsights.length)];
+                    Toast.show(`Deep Analysis: ${randomDetail}`, 'success');
+                    
+                    this.updateAIStatus('ready', 'AI Assistant Active');
+                }, 3000);
             }
 
             handleAssetChange(asset) {
                 this.currentAsset = asset;
                 trackNavigation(`ai-powered/asset/${asset.id}`);
                 
-                // Update asset context
+                // Start AI analysis
+                this.startAssetAnalysis(asset);
+                
+                // Update asset context with AI enhancements
                 const container = document.getElementById('asset-context');
+                const complexity = this.calculateAssetComplexity(asset);
+                const riskLevel = complexity > 1.3 ? 'High' : complexity > 1.1 ? 'Medium' : 'Low';
+                const riskColor = complexity > 1.3 ? 'text-red-600' : complexity > 1.1 ? 'text-yellow-600' : 'text-green-600';
+                
                 container.innerHTML = `
-                    <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="border border-gray-200 rounded-lg p-4 ai-card">
                         <div class="flex items-center justify-between mb-3">
                             <div class="flex items-center">
                                 <span class="text-2xl mr-3">${this.getAssetIcon(asset.type)}</span>
@@ -410,9 +782,10 @@
                             <div class="text-right">
                                 <span class="text-lg font-bold text-gray-900">${asset.complianceScore}%</span>
                                 <p class="text-xs text-gray-600">compliance</p>
+                                <div class="text-xs ${riskColor} font-medium mt-1">Risk: ${riskLevel}</div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="grid grid-cols-2 gap-3 text-sm mb-3">
                             <div class="text-gray-600">
                                 <strong>Technology:</strong> ${asset.attributes.technology.slice(0, 2).join(', ')}
                             </div>
@@ -420,14 +793,83 @@
                                 <strong>Hosting:</strong> ${asset.attributes.hosting}
                             </div>
                         </div>
+                        <div class="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
+                            <span class="text-gray-600">AI Complexity Score:</span>
+                            <div class="flex items-center">
+                                <span class="mr-2">${(complexity * 100).toFixed(0)}%</span>
+                                <div class="w-16 bg-gray-200 rounded-full h-1">
+                                    <div class="bg-blue-500 rounded-full h-1" style="width: ${complexity * 50}%"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
 
-                // Update requirements
+                // Update requirements with AI analysis
                 this.updateRecommendedRequirements(asset);
                 
                 // Regenerate AI suggestions based on new asset
                 this.generateAISuggestions();
+                
+                // Update task flow for new asset
+                this.createTaskFlow();
+            }
+            
+            startAssetAnalysis(asset) {
+                const analysisContainer = document.getElementById('ai-analysis-content');
+                const confidenceContainer = document.getElementById('analysis-confidence');
+                
+                // Simulate AI analysis process
+                analysisContainer.innerHTML = '<div class="ai-thinking">Analyzing asset requirements...</div>';
+                confidenceContainer.textContent = 'Confidence: --';
+                
+                setTimeout(() => {
+                    analysisContainer.innerHTML = '<div class="ai-thinking">Processing compliance patterns...</div>';
+                }, 1500);
+                
+                setTimeout(() => {
+                    analysisContainer.innerHTML = '<div class="ai-thinking">Comparing with similar assets...</div>';
+                }, 3000);
+                
+                setTimeout(() => {
+                    const analysis = this.generateAssetAnalysis(asset);
+                    analysisContainer.innerHTML = analysis.content;
+                    confidenceContainer.textContent = `Confidence: ${analysis.confidence}%`;
+                }, 4500);
+            }
+            
+            generateAssetAnalysis(asset) {
+                const complexity = this.calculateAssetComplexity(asset);
+                const confidence = Math.round(85 + (Math.random() * 10));
+                
+                const riskAreas = [];
+                if (asset.type === 'api') riskAreas.push('authentication', 'data validation');
+                if (complexity > 1.3) riskAreas.push('integration complexity');
+                if (asset.complianceScore < 70) riskAreas.push('compliance gaps');
+                
+                const content = `
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <span class="text-green-600 mr-2">✓</span>
+                            <span class="text-sm">Asset type '${asset.type}' analysis complete</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-blue-600 mr-2">🎯</span>
+                            <span class="text-sm">${riskAreas.length} priority areas identified</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-purple-600 mr-2">🤖</span>
+                            <span class="text-sm">Matched against ${Math.floor(Math.random() * 20) + 30} similar projects</span>
+                        </div>
+                        ${riskAreas.length > 0 ? `
+                            <div class="mt-2 p-2 bg-yellow-50 rounded text-xs">
+                                <strong>Priority areas:</strong> ${riskAreas.join(', ')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                return { content, confidence };
             }
 
             updateRecommendedRequirements(asset) {
@@ -438,14 +880,146 @@
                 const scoredRequirements = requirements
                     .map(req => ({
                         ...req,
-                        aiRelevanceScore: this.calculateAIRelevanceScore(req, asset)
+                        aiRelevanceScore: this.calculateAIRelevanceScore(req, asset),
+                        aiReasoning: this.generateRequirementReasoning(req, asset),
+                        predictedComplexity: this.predictRequirementComplexity(req, asset),
+                        suggestedApproach: this.suggestRequirementApproach(req, asset)
                     }))
                     .sort((a, b) => b.aiRelevanceScore - a.aiRelevanceScore)
-                    .slice(0, 3);
+                    .slice(0, 4);
 
-                container.innerHTML = scoredRequirements.map(req => 
-                    RequirementCard.render(req, req.aiRelevanceScore, true)
-                ).join('');
+                // Enhanced requirement cards with AI insights
+                container.innerHTML = scoredRequirements.map((req, index) => {
+                    const priorityClass = index === 0 ? 'border-l-4 border-red-400 bg-red-50' :
+                                         index === 1 ? 'border-l-4 border-yellow-400 bg-yellow-50' :
+                                         'border-l-4 border-blue-400 bg-blue-50';
+                    
+                    const complexityBadge = req.predictedComplexity === 'high' ? 'bg-red-100 text-red-600' :
+                                            req.predictedComplexity === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                                            'bg-green-100 text-green-600';
+                    
+                    return `
+                        <div class="requirement-card p-4 rounded-lg border ${priorityClass} ai-card cursor-pointer" 
+                             onclick="window.aiNavigator.exploreRequirement('${req.id}')">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center">
+                                    <span class="text-sm font-semibold text-gray-900">${req.title}</span>
+                                    <span class="ml-2 text-xs px-2 py-1 rounded-full ${complexityBadge}">
+                                        ${req.predictedComplexity}
+                                    </span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-gray-600">AI: ${Math.round(req.aiRelevanceScore)}%</div>
+                                    <div class="w-12 bg-gray-200 rounded-full h-1 mt-1">
+                                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-full h-1" 
+                                             style="width: ${req.aiRelevanceScore}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2">${req.description}</p>
+                            <div class="bg-white/50 p-2 rounded text-xs mb-2">
+                                <strong class="text-purple-700">AI Insight:</strong> 
+                                <span class="text-gray-700">${req.aiReasoning}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-blue-600 font-medium">${req.suggestedApproach}</span>
+                                <span class="text-gray-500">${req.domain}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            generateRequirementReasoning(requirement, asset) {
+                const reasons = {
+                    'api': {
+                        'security': 'APIs are primary attack vectors - critical for this asset type',
+                        'architecture': 'API design patterns directly impact maintainability',
+                        'quality': 'API reliability affects all downstream services'
+                    },
+                    'web-app': {
+                        'security': 'Web applications face diverse threat vectors',
+                        'quality': 'User experience depends on application reliability',
+                        'architecture': 'Scalable architecture enables growth'
+                    },
+                    'platform': {
+                        'architecture': 'Platform stability affects multiple teams',
+                        'security': 'Platforms require defense in depth',
+                        'quality': 'Platform issues cascade to dependent services'
+                    }
+                };
+                
+                const assetReasons = reasons[asset.type] || reasons['api'];
+                return assetReasons[requirement.domain] || 
+                       `Based on ${asset.type} best practices and compliance patterns`;
+            }
+            
+            predictRequirementComplexity(requirement, asset) {
+                let complexity = 0;
+                
+                // Base complexity by domain
+                const domainComplexity = {
+                    'security': 3,
+                    'architecture': 2,
+                    'quality': 1
+                };
+                complexity += domainComplexity[requirement.domain] || 1;
+                
+                // Asset type impact
+                if (asset.type === 'api' && requirement.domain === 'security') complexity += 2;
+                if (asset.type === 'platform') complexity += 1;
+                
+                // Technology complexity
+                if (asset.attributes.technology.includes('microservices')) complexity += 1;
+                
+                return complexity > 4 ? 'high' : complexity > 2 ? 'medium' : 'low';
+            }
+            
+            suggestRequirementApproach(requirement, asset) {
+                const approaches = {
+                    'security': [
+                        'Start with threat modeling',
+                        'Implement defense in depth',
+                        'Focus on authentication first',
+                        'Prioritize data protection'
+                    ],
+                    'architecture': [
+                        'Begin with system design',
+                        'Define clear interfaces',
+                        'Plan for scalability',
+                        'Document decision rationale'
+                    ],
+                    'quality': [
+                        'Establish testing strategy',
+                        'Implement monitoring',
+                        'Define quality metrics',
+                        'Automate quality gates'
+                    ]
+                };
+                
+                const domainApproaches = approaches[requirement.domain] || approaches['quality'];
+                return domainApproaches[Math.floor(Math.random() * domainApproaches.length)];
+            }
+            
+            exploreRequirement(requirementId) {
+                trackInteraction('ai_requirement_explore', { requirement: requirementId });
+                
+                // Simulate AI-powered requirement exploration
+                this.updateAIStatus('exploring', 'Exploring requirement details...');
+                
+                setTimeout(() => {
+                    const insights = [
+                        'Found 5 related requirements in similar projects',
+                        'Compliance validation rules identified',
+                        'Implementation templates available',
+                        'Risk mitigation strategies suggested'
+                    ];
+                    
+                    const randomInsight = insights[Math.floor(Math.random() * insights.length)];
+                    Toast.show(`AI Analysis: ${randomInsight}`, 'info');
+                    
+                    this.updateAIStatus('ready', 'AI Assistant Active');
+                }, 2000);
             }
 
             calculateAIRelevanceScore(requirement, asset) {
@@ -496,6 +1070,9 @@
             }
 
             executeAIAction(actionType) {
+                // Start AI action with visual feedback
+                this.updateAIStatus('executing', `Executing ${actionType.replace('-', ' ')}...`);
+                
                 switch(actionType) {
                     case 'security-check':
                         this.focusOnDomain('security');
@@ -507,48 +1084,281 @@
                         this.showPatternAnalysis();
                         break;
                 }
+                
+                // Return to ready state
+                setTimeout(() => {
+                    this.updateAIStatus('ready', 'AI Assistant Active');
+                }, 3000);
             }
 
             focusOnDomain(domain) {
                 const requirements = getRequirementsForAsset(this.currentAsset.id)
                     .filter(req => req.domain === domain);
                 
+                // AI-enhanced domain focus with detailed analysis
+                const domainInsights = {
+                    'security': {
+                        priority: 'CRITICAL',
+                        riskLevel: 'HIGH',
+                        recommendation: 'Start with authentication and authorization requirements',
+                        estimatedTime: '45-60 minutes',
+                        complexityFactors: ['Multi-factor authentication', 'API security', 'Data encryption']
+                    },
+                    'architecture': {
+                        priority: 'HIGH',
+                        riskLevel: 'MEDIUM',
+                        recommendation: 'Focus on scalability and maintainability patterns',
+                        estimatedTime: '30-45 minutes',
+                        complexityFactors: ['Microservices design', 'Data consistency', 'Service communication']
+                    },
+                    'quality': {
+                        priority: 'MEDIUM',
+                        riskLevel: 'LOW',
+                        recommendation: 'Establish testing and monitoring strategies',
+                        estimatedTime: '20-30 minutes',
+                        complexityFactors: ['Test automation', 'Performance monitoring', 'Error handling']
+                    }
+                };
+                
+                const insight = domainInsights[domain] || domainInsights['quality'];
+                
                 const container = document.getElementById('requirements-list');
                 container.innerHTML = `
-                    <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-                        <h5 class="font-medium text-blue-900 mb-2">AI Focus: ${domain.toUpperCase()} Requirements</h5>
-                        <p class="text-sm text-blue-700">Showing ${requirements.length} ${domain} requirements for ${this.currentAsset.name}</p>
+                    <div class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between mb-3">
+                            <h5 class="font-bold text-blue-900">AI Focus: ${domain.toUpperCase()} Requirements</h5>
+                            <span class="text-xs px-3 py-1 rounded-full ${
+                                insight.priority === 'CRITICAL' ? 'bg-red-100 text-red-700' :
+                                insight.priority === 'HIGH' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-green-100 text-green-700'
+                            }">${insight.priority}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-sm mb-3">
+                            <div><strong>Requirements Found:</strong> ${requirements.length}</div>
+                            <div><strong>Estimated Time:</strong> ${insight.estimatedTime}</div>
+                            <div><strong>Risk Level:</strong> <span class="text-${insight.riskLevel === 'HIGH' ? 'red' : insight.riskLevel === 'MEDIUM' ? 'yellow' : 'green'}-600">${insight.riskLevel}</span></div>
+                            <div><strong>Asset:</strong> ${this.currentAsset.name}</div>
+                        </div>
+                        <div class="bg-white/60 p-3 rounded mb-3">
+                            <div class="text-sm font-medium text-purple-800 mb-1">AI Recommendation:</div>
+                            <div class="text-sm text-gray-700">${insight.recommendation}</div>
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            <strong>Key Complexity Factors:</strong> ${insight.complexityFactors.join(', ')}
+                        </div>
                     </div>
-                    ${requirements.map(req => RequirementCard.render(req, req.relevanceScore, true)).join('')}
+                    <div class="space-y-3">
+                        ${requirements.map((req, index) => {
+                            const aiScore = this.calculateAIRelevanceScore(req, this.currentAsset);
+                            const priority = index < 2 ? 'HIGH' : index < 4 ? 'MEDIUM' : 'LOW';
+                            const priorityColor = priority === 'HIGH' ? 'border-red-400 bg-red-50' :
+                                                 priority === 'MEDIUM' ? 'border-yellow-400 bg-yellow-50' :
+                                                 'border-blue-400 bg-blue-50';
+                            
+                            return `
+                                <div class="requirement-card p-3 rounded-lg border-l-4 ${priorityColor} ai-card">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-gray-900">${req.title}</span>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700">${priority}</span>
+                                            <span class="text-xs text-gray-600">AI: ${Math.round(aiScore)}%</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mb-2">${req.description}</p>
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-blue-600">Est. ${Math.floor(Math.random() * 20 + 10)} min</span>
+                                        <span class="text-gray-500">${req.priority} priority</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 `;
+                
+                // Track domain focus for AI learning
+                trackInteraction('ai_domain_focus', { domain, requirementCount: requirements.length });
+                Toast.show(`AI focused on ${domain} requirements with ${insight.priority} priority`, 'info');
             }
 
             startSmartAssessment() {
-                // Update task flow to show AI-optimized sequence
-                this.createTaskFlow();
-                this.updateProgress();
-                Toast.show('AI has optimized your assessment flow', 'success');
+                // AI-driven smart assessment with adaptive workflow
+                this.updateAIStatus('optimizing', 'Optimizing assessment workflow...');
+                
+                // Simulate AI analysis and optimization
+                setTimeout(() => {
+                    // Update task flow with optimized sequence
+                    this.createTaskFlow();
+                    this.updateProgress();
+                    
+                    // Generate smart assessment insights
+                    const optimizations = [
+                        `Reordered tasks based on your ${this.userPatterns.workflowPreferences.startsWithSecurity}% preference for security-first approach`,
+                        `Identified 3 tasks that can be parallelized to save ${Math.floor(Math.random() * 15 + 10)} minutes`,
+                        `Applied lessons from ${Math.floor(Math.random() * 10 + 5)} similar ${this.currentAsset?.type || 'api'} assessments`,
+                        `Customized complexity scoring based on your ${Math.round(this.userPatterns.adaptationScores.taskPrediction * 100)}% accuracy rate`
+                    ];
+                    
+                    const randomOptimization = optimizations[Math.floor(Math.random() * optimizations.length)];
+                    
+                    // Show detailed optimization notification
+                    Toast.show(`Smart Assessment Activated: ${randomOptimization}`, 'success');
+                    
+                    // Add to dynamic insights
+                    this.addDynamicInsight({
+                        icon: '🤖',
+                        text: 'Workflow optimized - 23% time reduction predicted',
+                        type: 'optimization',
+                        confidence: 91
+                    });
+                    
+                }, 2000);
             }
 
             showPatternAnalysis() {
+                this.updateAIStatus('analyzing', 'Running pattern analysis across project database...');
+                
                 Toast.show('Analyzing patterns from similar projects...', 'info');
+                
+                // Simulate deep pattern analysis
                 setTimeout(() => {
-                    Toast.show('Found 3 similar patterns - check insights panel', 'success');
-                }, 2000);
+                    const patternResults = {
+                        similarProjects: Math.floor(Math.random() * 15 + 10),
+                        patterns: Math.floor(Math.random() * 5 + 3),
+                        accuracy: Math.floor(Math.random() * 10 + 85),
+                        insights: [
+                            'Similar APIs required 40% more focus on authentication',
+                            'Data validation requirements often delayed completion',
+                            'Projects with your tech stack show 23% faster completion',
+                            'Security-first approach reduces late-stage changes by 67%'
+                        ]
+                    };
+                    
+                    // Update UI with pattern analysis results
+                    const container = document.getElementById('requirements-list');
+                    const originalContent = container.innerHTML;
+                    
+                    container.innerHTML = `
+                        <div class="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
+                            <div class="flex items-center mb-3">
+                                <span class="text-green-600 mr-2 text-lg">📈</span>
+                                <h5 class="font-bold text-green-900">Pattern Analysis Results</h5>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
+                                <div><strong>Similar Projects:</strong> ${patternResults.similarProjects}</div>
+                                <div><strong>Patterns Found:</strong> ${patternResults.patterns}</div>
+                                <div><strong>Match Accuracy:</strong> ${patternResults.accuracy}%</div>
+                                <div><strong>Asset Type:</strong> ${this.currentAsset?.type || 'Unknown'}</div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="font-medium text-gray-800 text-sm">Key Insights:</div>
+                                ${patternResults.insights.map(insight => `
+                                    <div class="flex items-start">
+                                        <span class="text-blue-500 mr-2 mt-0.5">•</span>
+                                        <span class="text-sm text-gray-700">${insight}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button class="mt-3 text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+                                    onclick="document.getElementById('requirements-list').innerHTML = \`${originalContent.replace(/`/g, '\\`')}\`">
+                                Return to Requirements
+                            </button>
+                        </div>
+                    `;
+                    
+                    Toast.show(`Found ${patternResults.patterns} patterns across ${patternResults.similarProjects} projects with ${patternResults.accuracy}% accuracy`, 'success');
+                    
+                    // Add insights to learning panel
+                    patternResults.insights.forEach((insight, index) => {
+                        setTimeout(() => {
+                            this.addDynamicInsight({
+                                icon: '📈',
+                                text: insight,
+                                type: 'pattern-analysis',
+                                confidence: patternResults.accuracy + Math.floor(Math.random() * 10 - 5)
+                            });
+                        }, (index + 1) * 1000);
+                    });
+                    
+                }, 3000);
             }
 
             selectTask(taskId) {
                 trackInteraction('ai_task_select', { task: taskId });
                 
-                // Update task flow state
+                const selectedTask = this.taskFlow.find(t => t.id === taskId);
+                if (!selectedTask) return;
+                
+                this.updateAIStatus('switching', `Switching to ${selectedTask.title.toLowerCase()}...`);
+                
+                // Update task flow state with AI reasoning
                 this.taskFlow = this.taskFlow.map(task => ({
                     ...task,
                     status: task.id === taskId ? 'active' : 
                            task.status === 'active' ? 'completed' : task.status
                 }));
                 
-                this.createTaskFlow();
-                Toast.show(`AI guidance activated for task`, 'info');
+                // Generate task-specific AI guidance
+                const taskGuidance = {
+                    'requirements-analysis': {
+                        focus: 'Analyze requirements with AI prioritization',
+                        tips: ['Use AI relevance scoring', 'Focus on high-impact items first', 'Consider technical complexity'],
+                        estimatedTime: '20-25 minutes'
+                    },
+                    'risk-assessment': {
+                        focus: 'Identify and assess potential risks',
+                        tips: ['Leverage predictive risk models', 'Consider historical patterns', 'Prioritize business impact'],
+                        estimatedTime: '15-20 minutes'
+                    },
+                    'compliance-check': {
+                        focus: 'Validate compliance requirements',
+                        tips: ['Use automated compliance checking', 'Cross-reference regulations', 'Document exceptions'],
+                        estimatedTime: '10-15 minutes'
+                    },
+                    'documentation': {
+                        focus: 'Generate comprehensive documentation',
+                        tips: ['Use AI content generation', 'Include assessment rationale', 'Add implementation notes'],
+                        estimatedTime: '5-10 minutes'
+                    }
+                };
+                
+                const guidance = taskGuidance[taskId] || {
+                    focus: 'Complete the selected task',
+                    tips: ['Follow AI recommendations'],
+                    estimatedTime: '10-15 minutes'
+                };
+                
+                setTimeout(() => {
+                    this.createTaskFlow();
+                    this.updateProgress();
+                    
+                    // Show AI guidance for selected task
+                    Toast.show(`AI Guidance: ${guidance.focus} (${guidance.estimatedTime})`, 'info');
+                    
+                    // Update AI suggestions based on selected task
+                    this.generateTaskSpecificSuggestions(taskId, guidance);
+                    
+                    this.updateAIStatus('ready', 'AI Assistant Active');
+                }, 1500);
+            }
+            
+            generateTaskSpecificSuggestions(taskId, guidance) {
+                // Generate contextual suggestions for the selected task
+                const suggestions = guidance.tips.map((tip, index) => ({
+                    icon: ['🎯', '⚡', '🤖'][index] || '📊',
+                    text: tip,
+                    confidence: 85 + Math.floor(Math.random() * 10)
+                }));
+                
+                const container = document.getElementById('suggested-steps');
+                container.innerHTML = suggestions.map(suggestion => `
+                    <div class="flex items-center justify-between p-2 bg-white rounded border task-suggestion">
+                        <div class="flex items-center">
+                            <span class="mr-2">${suggestion.icon}</span>
+                            <span class="text-xs text-blue-800">${suggestion.text}</span>
+                        </div>
+                        <span class="text-xs text-gray-600">${suggestion.confidence}%</span>
+                    </div>
+                `).join('');
             }
 
             updateProgress() {
@@ -557,18 +1367,35 @@
                 const percentage = Math.round((completedTasks / totalTasks) * 100);
                 
                 document.getElementById('progress-percentage').textContent = `${percentage}%`;
-                document.getElementById('progress-bar').style.width = `${percentage}%`;
+                
+                const progressBar = document.getElementById('progress-bar');
+                progressBar.style.setProperty('--target-width', `${percentage}%`);
+                progressBar.style.animation = 'progressGrow 1s ease-out forwards';
+                progressBar.style.width = `${percentage}%`;
                 
                 const insights = [
-                    'Starting assessment...',
-                    'Good progress on requirements analysis',
-                    'Ready for risk assessment phase',
-                    'Compliance check in progress',
-                    'Assessment nearly complete!'
+                    'AI analysis initialized - ready to begin...',
+                    'Requirements prioritized by ML algorithm',
+                    'Risk patterns identified - proceeding efficiently',
+                    'Compliance predictions looking positive',
+                    'AI-assisted assessment nearly complete!'
                 ];
                 
                 const currentTaskIndex = Math.min(completedTasks, insights.length - 1);
                 document.getElementById('progress-insight').textContent = insights[currentTaskIndex];
+                
+                // AI-driven time estimation
+                const remainingTasks = this.taskFlow.filter(t => t.status === 'pending');
+                const estimatedMinutes = remainingTasks.reduce((total, task) => total + (task.estimatedTime || 0), 0);
+                
+                if (estimatedMinutes > 0) {
+                    const hours = Math.floor(estimatedMinutes / 60);
+                    const minutes = estimatedMinutes % 60;
+                    const timeString = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                    document.getElementById('time-estimate').textContent = `Estimated completion: ${timeString}`;
+                } else {
+                    document.getElementById('time-estimate').textContent = 'Assessment complete!';
+                }
                 
                 this.progress = percentage;
             }
@@ -580,7 +1407,166 @@
                         const recentInteraction = navigationAnalytics.interactions[navigationAnalytics.interactions.length - 1];
                         this.updateUserPatterns(recentInteraction);
                     }
+                    
+                    // Update AI learning metrics
+                    this.updateLearningMetrics();
                 }, 5000);
+                
+                // Start AI thinking simulation
+                this.simulateAIThinking();
+            }
+            
+            startAIThinking() {
+                this.aiState.isThinking = true;
+                this.updateAIStatus('thinking', 'Analyzing user patterns...');
+                
+                setTimeout(() => {
+                    this.updateAIStatus('analyzing', 'Processing asset data...');
+                }, 2000);
+                
+                setTimeout(() => {
+                    this.updateAIStatus('ready', 'AI Assistant Active');
+                    this.aiState.isThinking = false;
+                }, 4000);
+            }
+            
+            updateAIStatus(state, message) {
+                const statusElement = document.getElementById('ai-status-text');
+                const thinkingElement = document.getElementById('ai-thinking-text');
+                
+                if (statusElement) statusElement.textContent = message;
+                if (thinkingElement) {
+                    const thinkingMessages = {
+                        'thinking': 'Deep learning in progress...',
+                        'analyzing': 'Processing compliance patterns...',
+                        'ready': 'Ready for intelligent guidance'
+                    };
+                    thinkingElement.textContent = thinkingMessages[state] || message;
+                }
+            }
+            
+            simulateAIThinking() {
+                setInterval(() => {
+                    if (!this.aiState.isThinking) {
+                        const thinkingActions = [
+                            'Analyzing recent patterns...',
+                            'Updating ML models...',
+                            'Processing user feedback...',
+                            'Optimizing recommendations...',
+                            'Learning from similar projects...'
+                        ];
+                        
+                        const randomAction = thinkingActions[Math.floor(Math.random() * thinkingActions.length)];
+                        document.getElementById('ai-thinking-text').textContent = randomAction;
+                    }
+                }, 8000);
+            }
+            
+            updateLearningMetrics() {
+                // Simulate gradual learning improvement
+                this.aiState.learningProgress.patterns = Math.min(99, this.aiState.learningProgress.patterns + 0.1);
+                this.aiState.learningProgress.prediction = Math.min(99, this.aiState.learningProgress.prediction + 0.05);
+                this.aiState.learningProgress.adaptation = Math.min(99, this.aiState.learningProgress.adaptation + 0.08);
+                
+                this.aiState.sessionsAnalyzed += Math.random() > 0.8 ? 1 : 0;
+                this.aiState.accuracyImprovement = Math.min(50, this.aiState.accuracyImprovement + 0.1);
+                this.aiState.timeSaved += 0.01;
+                
+                // Update display
+                document.getElementById('sessions-count').textContent = this.aiState.sessionsAnalyzed;
+                document.getElementById('accuracy-improvement').textContent = `+${Math.round(this.aiState.accuracyImprovement)}%`;
+                document.getElementById('time-saved').textContent = `${this.aiState.timeSaved.toFixed(1)} hrs`;
+            }
+            
+            initializeLiveUpdates() {
+                const updateMessages = [
+                    'New compliance pattern detected in API security...',
+                    '3 similar projects completed assessments today...',
+                    'ML model updated with latest regulatory changes...',
+                    'Risk prediction accuracy improved to 94.2%...',
+                    'Found optimization opportunity in workflow...',
+                    'User behavior patterns updated successfully...'
+                ];
+                
+                let messageIndex = 0;
+                setInterval(() => {
+                    const liveUpdatesContent = document.getElementById('live-updates-content');
+                    if (liveUpdatesContent) {
+                        liveUpdatesContent.textContent = updateMessages[messageIndex];
+                        messageIndex = (messageIndex + 1) % updateMessages.length;
+                    }
+                }, 6000);
+            }
+            
+            startDynamicInsightGeneration() {
+                const generateInsight = () => {
+                    const insights = [
+                        {
+                            icon: '💡',
+                            text: 'Your API assessments are 34% faster when started on weekdays',
+                            type: 'productivity',
+                            confidence: 89
+                        },
+                        {
+                            icon: '📈',
+                            text: 'Security requirements take 40% longer than estimated',
+                            type: 'time-analysis',
+                            confidence: 92
+                        },
+                        {
+                            icon: '🎯',
+                            text: 'Consider grouping data protection requirements together',
+                            type: 'workflow',
+                            confidence: 76
+                        },
+                        {
+                            icon: '⚠️',
+                            text: 'High risk detected in authentication requirements',
+                            type: 'risk-alert',
+                            confidence: 95
+                        }
+                    ];
+                    
+                    const randomInsight = insights[Math.floor(Math.random() * insights.length)];
+                    this.addDynamicInsight(randomInsight);
+                };
+                
+                // Generate first insight after 3 seconds
+                setTimeout(generateInsight, 3000);
+                
+                // Continue generating insights every 12 seconds
+                setInterval(generateInsight, 12000);
+            }
+            
+            addDynamicInsight(insight) {
+                const container = document.getElementById('dynamic-insights');
+                if (!container) return;
+                
+                const insightElement = document.createElement('div');
+                insightElement.className = 'flex items-center justify-between p-2 bg-blue-50 rounded border-l-2 border-blue-400 ai-insight-new';
+                insightElement.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="mr-2">${insight.icon}</span>
+                        <span class="text-xs text-gray-700">${insight.text}</span>
+                    </div>
+                    <span class="text-xs text-blue-600">${insight.confidence}%</span>
+                `;
+                
+                container.insertBefore(insightElement, container.firstChild);
+                
+                // Remove old insights (keep only last 3)
+                while (container.children.length > 3) {
+                    container.removeChild(container.lastChild);
+                }
+            }
+            
+            configureAI() {
+                // Simulate AI configuration
+                this.updateAIStatus('configuring', 'Configuring AI preferences...');
+                setTimeout(() => {
+                    this.updateAIStatus('ready', 'AI preferences updated');
+                    Toast.show('AI learning preferences updated successfully', 'success');
+                }, 2000);
             }
 
             updateUserPatterns(interaction) {
