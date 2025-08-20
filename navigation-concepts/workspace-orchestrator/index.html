@@ -3,43 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Context-Aware Workspace Orchestrator - GRC Portal</title>
+    <title>Workspace Orchestrator - GRC Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .widget { transition: all 0.3s ease; }
-        .widget:hover { transform: translateY(-2px); }
-        .widget-dragging { transform: rotate(2deg) scale(1.05); z-index: 50; }
-        .bento-grid { display: grid; gap: 1rem; }
-        .bento-1x1 { grid-column: span 1; grid-row: span 1; min-height: 200px; }
-        .bento-2x1 { grid-column: span 2; grid-row: span 1; min-height: 200px; }
-        .bento-1x2 { grid-column: span 1; grid-row: span 2; min-height: 400px; }
-        .bento-2x2 { grid-column: span 2; grid-row: span 2; min-height: 400px; }
-        .widget-header { cursor: move; }
-        .context-indicator { background: linear-gradient(45deg, #667eea, #764ba2); }
-        .workspace-tab { transition: all 0.2s ease; }
-        .workspace-tab.active { box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-        .floating-action { animation: float 3s ease-in-out infinite; }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
+        /* Widget animations */
+        .widget-card { 
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out;
         }
-
-        /* Responsive grid */
-        .bento-grid {
+        .widget-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+        
+        /* Drag and drop styles */
+        .widget-dragging { 
+            opacity: 0.5; 
+            transform: rotate(5deg);
+        }
+        .drop-zone { 
+            border: 2px dashed #3b82f6; 
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        /* Grid layout animations */
+        .grid-container {
+            display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            transition: all 0.3s ease;
         }
         
-        @media (min-width: 768px) {
-            .bento-grid { grid-template-columns: repeat(4, 1fr); }
+        /* Context-sensitive highlighting */
+        .context-highlight {
+            animation: pulse 2s infinite;
+            border-color: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
         }
-
-        /* Custom scrollbar */
-        .widget-scroll::-webkit-scrollbar { width: 4px; }
-        .widget-scroll::-webkit-scrollbar-track { background: transparent; }
-        .widget-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        
+        /* Widget toolbar */
+        .widget-toolbar {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .widget-card:hover .widget-toolbar {
+            opacity: 1;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        /* Custom scrollbars */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        /* Widget catalog modal */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        /* Layout customization */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .layout-cell {
+            aspect-ratio: 1;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .layout-cell:hover {
+            background: #3b82f6;
+            opacity: 0.7;
+        }
+        
+        .layout-cell.selected {
+            background: #3b82f6;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -52,872 +108,764 @@
                     <p class="text-sm text-gray-600">Modular governance workspace with smart context</p>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <!-- Context Indicator -->
-                    <div class="context-indicator text-white px-4 py-2 rounded-lg">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm font-medium" id="current-context">API Development Context</span>
-                            <button id="context-menu" class="text-white hover:text-gray-200">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                </svg>
-                            </button>
-                        </div>
+                    <!-- Context Selector -->
+                    <div class="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg text-sm font-medium">
+                        <span id="current-context">🔌 API Development Context</span>
+                        <button onclick="showContextMenu()" class="ml-2 text-blue-600 hover:text-blue-800">...</button>
                     </div>
-                    <!-- Role Switcher -->
-                    <div id="role-selector"></div>
                     <!-- User Info -->
                     <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <span class="text-sm font-medium text-purple-700">SC</span>
+                        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-medium text-white">SC</span>
                         </div>
                         <span class="text-sm font-medium text-gray-700">Sarah Chen</span>
                     </div>
                 </div>
             </div>
+            
+            <!-- Workspace Controls -->
+            <div class="flex items-center justify-between mt-4">
+                <div class="flex items-center space-x-4">
+                    <button onclick="showWidgetCatalog()" class="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">
+                        <span>➕</span>
+                        <span>Add Widget</span>
+                    </button>
+                    <button onclick="toggleCustomizeMode()" class="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all">
+                        <span>⚙️</span>
+                        <span>Customize Layout</span>
+                    </button>
+                    <div class="text-sm text-gray-500">
+                        <span id="widget-count">6</span> widgets • Last saved: <span id="last-saved">2 min ago</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="saveWorkspace()" class="text-blue-600 hover:text-blue-800 px-3 py-1 text-sm font-medium">Save Workspace</button>
+                    <button onclick="shareWorkspace()" class="text-gray-600 hover:text-gray-800 px-3 py-1 text-sm font-medium">Share</button>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- Workspace Tabs -->
-    <div class="bg-white border-b border-gray-200">
-        <div class="container mx-auto px-6">
-            <div class="flex space-x-1 overflow-x-auto" id="workspace-tabs">
-                <!-- Workspace tabs will be populated here -->
-            </div>
-        </div>
-    </div>
-
+    <!-- Main Workspace -->
     <div class="container mx-auto px-6 py-8">
-        <!-- Workspace Controls -->
-        <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center space-x-4">
-                <button id="add-widget" class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span class="text-sm font-medium">Add Widget</span>
-                </button>
-                <button id="layout-mode" class="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                    <span class="text-sm font-medium">Customize Layout</span>
-                </button>
-                <div id="asset-selector" class="w-64"></div>
-            </div>
-            
-            <div class="flex items-center space-x-2">
-                <button id="save-workspace" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    Save Workspace
-                </button>
-                <button id="share-workspace" class="text-sm text-gray-600 hover:text-gray-800">
-                    Share
-                </button>
-            </div>
-        </div>
-
-        <!-- Widget Palette (Hidden by default) -->
-        <div id="widget-palette" class="hidden mb-6 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Available Widgets</h3>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4" id="available-widgets">
-                <!-- Widget options will be populated here -->
-            </div>
-        </div>
-
-        <!-- Bento Grid Workspace -->
-        <div class="bento-grid" id="workspace-grid">
+        <div id="workspace-grid" class="grid-container">
             <!-- Widgets will be populated here -->
         </div>
+        
+        <!-- Drop Zone for new widgets -->
+        <div id="drop-zone" class="hidden mt-6 p-8 border-2 border-dashed border-gray-300 rounded-xl text-center text-gray-500">
+            <div class="text-2xl mb-2">📦</div>
+            <p>Drop widgets here to add them to your workspace</p>
+        </div>
     </div>
 
-    <!-- Floating Action Menu -->
-    <div class="fixed bottom-6 right-6 z-50">
-        <div class="relative">
-            <button id="floating-menu" class="w-12 h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg floating-action flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
-                </svg>
-            </button>
-            <div id="floating-actions" class="hidden absolute bottom-16 right-0 bg-white rounded-lg shadow-xl border border-gray-200 p-2 min-w-48">
-                <!-- Floating actions will be populated here -->
+    <!-- Widget Catalog Modal -->
+    <div id="widget-catalog-modal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="hideWidgetCatalog()"></div>
+        <div class="relative flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-semibold text-gray-900">Widget Catalog</h3>
+                        <button onclick="hideWidgetCatalog()" class="text-gray-400 hover:text-gray-600">✕</button>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Choose widgets to add to your workspace</p>
+                </div>
+                <div class="p-6 overflow-y-auto custom-scroll" style="max-height: 60vh;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="widget-catalog-grid">
+                        <!-- Widget catalog items will be populated here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Analytics Footer -->
-    <div id="analytics-dashboard" class="mt-8"></div>
-
-    <!-- Scripts -->
-    <script type="module">
-        import { 
-            mockUsers, mockAssets, mockRequirements, mockCapabilities, trackInteraction, trackNavigation,
-            getAssetsByUser, getRequirementsForAsset, navigationAnalytics, mockDashboardMetrics
-        } from '../shared/mockData.js';
-        
-        import { 
-            AssetContextSwitcher, RoleSelector, RequirementCard, AssetCard, 
-            AnalyticsDashboard, Toast
-        } from '../shared/components.js';
-
-        // Workspace Orchestrator State
-        class WorkspaceOrchestrator {
-            constructor() {
-                this.currentUser = mockUsers.architect;
-                this.currentAsset = null;
-                this.workspaces = [];
-                this.activeWorkspace = null;
-                this.widgets = new Map();
-                this.layoutMode = false;
-                this.context = 'api-development';
-                this.init();
-            }
-
-            init() {
-                this.setupComponents();
-                this.createDefaultWorkspaces();
-                this.setupEventListeners();
-                this.initializeWorkspace();
-                this.setupDragAndDrop();
-            }
-
-            setupComponents() {
-                // Role Selector
-                const roleContainer = document.getElementById('role-selector');
-                new RoleSelector(roleContainer, ['architect', 'developer', 'manager'], 
-                    this.currentUser.role, (newRole) => this.handleRoleChange(newRole));
-
-                // Asset Context Switcher
-                const assets = getAssetsByUser(this.currentUser.role);
-                this.currentAsset = assets[0];
-                
-                const assetContainer = document.getElementById('asset-selector');
-                new AssetContextSwitcher(assetContainer, assets, (asset) => this.handleAssetChange(asset));
-            }
-
-            createDefaultWorkspaces() {
-                this.workspaces = [
-                    {
-                        id: 'overview',
-                        name: 'Overview',
-                        icon: '📊',
-                        widgets: ['asset-summary', 'compliance-score', 'recent-activity', 'quick-actions']
-                    },
-                    {
-                        id: 'requirements',
-                        name: 'Requirements',
-                        icon: '📋',
-                        widgets: ['requirements-list', 'domain-filter', 'requirement-details', 'implementation-guide']
-                    },
-                    {
-                        id: 'assessments',
-                        name: 'Assessments',
-                        icon: '✅',
-                        widgets: ['assessment-progress', 'question-bank', 'compliance-trends', 'assessment-history']
-                    },
-                    {
-                        id: 'analytics',
-                        name: 'Analytics',
-                        icon: '📈',
-                        widgets: ['compliance-dashboard', 'risk-heatmap', 'trend-analysis', 'benchmarking']
-                    }
-                ];
-
-                this.activeWorkspace = this.workspaces[0];
-                this.renderWorkspaceTabs();
-            }
-
-            setupEventListeners() {
-                // Workspace controls
-                document.getElementById('add-widget').addEventListener('click', () => this.toggleWidgetPalette());
-                document.getElementById('layout-mode').addEventListener('click', () => this.toggleLayoutMode());
-                document.getElementById('save-workspace').addEventListener('click', () => this.saveWorkspace());
-                document.getElementById('share-workspace').addEventListener('click', () => this.shareWorkspace());
-                
-                // Floating menu
-                document.getElementById('floating-menu').addEventListener('click', () => this.toggleFloatingMenu());
-                
-                // Context menu
-                document.getElementById('context-menu').addEventListener('click', () => this.showContextMenu());
-            }
-
-            renderWorkspaceTabs() {
-                const container = document.getElementById('workspace-tabs');
-                container.innerHTML = this.workspaces.map(workspace => `
-                    <button class="workspace-tab px-4 py-3 text-sm font-medium rounded-t-lg transition-all ${
-                        workspace.id === this.activeWorkspace.id 
-                            ? 'active bg-blue-50 text-blue-700 border-b-2 border-blue-500' 
-                            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                    }" data-workspace="${workspace.id}">
-                        <div class="flex items-center space-x-2">
-                            <span>${workspace.icon}</span>
-                            <span>${workspace.name}</span>
-                        </div>
-                    </button>
-                `).join('');
-
-                // Add event listeners
-                container.querySelectorAll('.workspace-tab').forEach(tab => {
-                    tab.addEventListener('click', (e) => {
-                        const workspaceId = e.currentTarget.dataset.workspace;
-                        this.switchWorkspace(workspaceId);
-                    });
-                });
-            }
-
-            initializeWorkspace() {
-                this.renderWidgets();
-                this.populateWidgetPalette();
-                this.populateFloatingActions();
-                this.updateContextIndicator();
-            }
-
-            renderWidgets() {
-                const grid = document.getElementById('workspace-grid');
-                const widgetHtml = this.activeWorkspace.widgets.map(widgetId => 
-                    this.createWidget(widgetId)
-                ).join('');
-                
-                grid.innerHTML = widgetHtml;
-                this.bindWidgetEvents();
-            }
-
-            createWidget(widgetId) {
-                const widgetConfig = this.getWidgetConfig(widgetId);
-                const sizeClass = this.getWidgetSize(widgetId);
-                
-                return `
-                    <div class="widget ${sizeClass} bg-white rounded-xl shadow-lg border border-gray-200" 
-                         data-widget-id="${widgetId}" draggable="${this.layoutMode}">
-                        <div class="widget-header p-4 border-b border-gray-200 flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-lg">${widgetConfig.icon}</span>
-                                <h3 class="text-lg font-semibold text-gray-900">${widgetConfig.title}</h3>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button class="text-gray-400 hover:text-gray-600" onclick="window.orchestrator.refreshWidget('${widgetId}')">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                    </svg>
-                                </button>
-                                <button class="text-gray-400 hover:text-gray-600" onclick="window.orchestrator.configureWidget('${widgetId}')">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                </button>
-                                ${this.layoutMode ? `
-                                    <button class="text-gray-400 hover:text-red-600" onclick="window.orchestrator.removeWidget('${widgetId}')">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                        </svg>
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </div>
-                        <div class="widget-content p-4 widget-scroll" style="max-height: calc(100% - 60px); overflow-y: auto;">
-                            ${this.getWidgetContent(widgetId)}
-                        </div>
+    <!-- Layout Customization Panel -->
+    <div id="customize-panel" class="fixed right-0 top-0 h-full w-80 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-40">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Customize Layout</h3>
+                <button onclick="toggleCustomizeMode()" class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+        </div>
+        <div class="p-6 overflow-y-auto custom-scroll" style="height: calc(100vh - 80px);">
+            <div class="space-y-6">
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-3">Grid Layout</h4>
+                    <div class="space-y-2">
+                        <button onclick="setGridColumns(2)" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50">2 Columns</button>
+                        <button onclick="setGridColumns(3)" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 bg-blue-50 text-blue-700">3 Columns</button>
+                        <button onclick="setGridColumns(4)" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50">4 Columns</button>
                     </div>
-                `;
-            }
-
-            getWidgetConfig(widgetId) {
-                const configs = {
-                    'asset-summary': { icon: '📊', title: 'Asset Summary' },
-                    'compliance-score': { icon: '🎯', title: 'Compliance Score' },
-                    'recent-activity': { icon: '📅', title: 'Recent Activity' },
-                    'quick-actions': { icon: '⚡', title: 'Quick Actions' },
-                    'requirements-list': { icon: '📋', title: 'Requirements' },
-                    'domain-filter': { icon: '🔍', title: 'Domain Filter' },
-                    'requirement-details': { icon: '📄', title: 'Requirement Details' },
-                    'implementation-guide': { icon: '🛠️', title: 'Implementation Guide' },
-                    'assessment-progress': { icon: '📈', title: 'Assessment Progress' },
-                    'question-bank': { icon: '❓', title: 'Question Bank' },
-                    'compliance-trends': { icon: '📊', title: 'Compliance Trends' },
-                    'assessment-history': { icon: '📚', title: 'Assessment History' },
-                    'compliance-dashboard': { icon: '📋', title: 'Compliance Dashboard' },
-                    'risk-heatmap': { icon: '🔥', title: 'Risk Heatmap' },
-                    'trend-analysis': { icon: '📈', title: 'Trend Analysis' },
-                    'benchmarking': { icon: '⚖️', title: 'Benchmarking' }
-                };
+                </div>
                 
-                return configs[widgetId] || { icon: '📦', title: 'Widget' };
-            }
-
-            getWidgetSize(widgetId) {
-                const sizes = {
-                    'asset-summary': 'bento-2x1',
-                    'compliance-score': 'bento-1x1',
-                    'recent-activity': 'bento-1x2',
-                    'quick-actions': 'bento-1x1',
-                    'requirements-list': 'bento-2x2',
-                    'domain-filter': 'bento-1x1',
-                    'requirement-details': 'bento-1x2',
-                    'implementation-guide': 'bento-1x1',
-                    'assessment-progress': 'bento-2x1',
-                    'question-bank': 'bento-1x1',
-                    'compliance-trends': 'bento-2x1',
-                    'assessment-history': 'bento-1x1',
-                    'compliance-dashboard': 'bento-2x2',
-                    'risk-heatmap': 'bento-2x1',
-                    'trend-analysis': 'bento-1x1',
-                    'benchmarking': 'bento-1x1'
-                };
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-3">Widget Spacing</h4>
+                    <div class="space-y-2">
+                        <button onclick="setSpacing('tight')" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50">Tight</button>
+                        <button onclick="setSpacing('normal')" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 bg-blue-50 text-blue-700">Normal</button>
+                        <button onclick="setSpacing('loose')" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50">Loose</button>
+                    </div>
+                </div>
                 
-                return sizes[widgetId] || 'bento-1x1';
-            }
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-3">Workspace Templates</h4>
+                    <div class="space-y-2">
+                        <button onclick="loadTemplate('developer')" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50">Developer Focus</button>
+                        <button onclick="loadTemplate('manager')" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50">Manager Dashboard</button>
+                        <button onclick="loadTemplate('compliance')" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50">Compliance View</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            getWidgetContent(widgetId) {
-                switch (widgetId) {
-                    case 'asset-summary':
-                        return this.createAssetSummaryWidget();
-                    case 'compliance-score':
-                        return this.createComplianceScoreWidget();
-                    case 'recent-activity':
-                        return this.createRecentActivityWidget();
-                    case 'quick-actions':
-                        return this.createQuickActionsWidget();
-                    case 'requirements-list':
-                        return this.createRequirementsListWidget();
-                    case 'domain-filter':
-                        return this.createDomainFilterWidget();
-                    case 'requirement-details':
-                        return this.createRequirementDetailsWidget();
-                    case 'assessment-progress':
-                        return this.createAssessmentProgressWidget();
-                    case 'compliance-trends':
-                        return this.createComplianceTrendsWidget();
-                    case 'compliance-dashboard':
-                        return this.createComplianceDashboardWidget();
-                    default:
-                        return `<div class="text-center py-8 text-gray-500">
-                                  <span class="text-2xl mb-2 block">🚧</span>
-                                  <p class="text-sm">Widget content coming soon</p>
-                                </div>`;
+    <!-- Context Menu -->
+    <div id="context-menu" class="fixed hidden bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
+        <button onclick="switchContext('api')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">🔌 API Development</button>
+        <button onclick="switchContext('mobile')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">📱 Mobile App</button>
+        <button onclick="switchContext('platform')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">🏗️ Platform Architecture</button>
+        <button onclick="switchContext('security')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">🔒 Security Review</button>
+    </div>
+
+    <script>
+        // Global state
+        let widgets = [];
+        let currentContext = 'api';
+        let customizeMode = false;
+        let gridColumns = 3;
+        let spacing = 'normal';
+
+        // Widget definitions
+        const widgetCatalog = [
+            {
+                id: 'requirements-overview',
+                title: 'Requirements Overview',
+                description: 'View and manage governance requirements',
+                icon: '📋',
+                category: 'Governance',
+                size: 'medium',
+                contextSensitive: true
+            },
+            {
+                id: 'compliance-score',
+                title: 'Compliance Score',
+                description: 'Track overall compliance metrics',
+                icon: '📊',
+                category: 'Analytics',
+                size: 'small',
+                contextSensitive: true
+            },
+            {
+                id: 'asset-health',
+                title: 'Asset Health',
+                description: 'Monitor asset compliance status',
+                icon: '🏥',
+                category: 'Monitoring',
+                size: 'medium',
+                contextSensitive: true
+            },
+            {
+                id: 'risk-alerts',
+                title: 'Risk Alerts',
+                description: 'Active risk notifications and alerts',
+                icon: '⚠️',
+                category: 'Risk',
+                size: 'small',
+                contextSensitive: false
+            },
+            {
+                id: 'assessment-queue',
+                title: 'Assessment Queue',
+                description: 'Pending assessments and reviews',
+                icon: '📝',
+                category: 'Tasks',
+                size: 'medium',
+                contextSensitive: false
+            },
+            {
+                id: 'team-activity',
+                title: 'Team Activity',
+                description: 'Recent team actions and updates',
+                icon: '👥',
+                category: 'Collaboration',
+                size: 'large',
+                contextSensitive: false
+            },
+            {
+                id: 'quick-actions',
+                title: 'Quick Actions',
+                description: 'Common governance actions',
+                icon: '⚡',
+                category: 'Productivity',
+                size: 'small',
+                contextSensitive: true
+            },
+            {
+                id: 'recent-changes',
+                title: 'Recent Changes',
+                description: 'Latest requirement and policy updates',
+                icon: '🔄',
+                category: 'Updates',
+                size: 'medium',
+                contextSensitive: false
+            }
+        ];
+
+        // Initialize workspace
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWorkspace();
+            populateWidgetCatalog();
+        });
+
+        function initializeWorkspace() {
+            // Load default widgets
+            widgets = [
+                { 
+                    id: 'requirements-overview-1', 
+                    type: 'requirements-overview', 
+                    position: 0,
+                    data: generateRequirementsData()
+                },
+                { 
+                    id: 'compliance-score-1', 
+                    type: 'compliance-score', 
+                    position: 1,
+                    data: generateComplianceData()
+                },
+                { 
+                    id: 'asset-health-1', 
+                    type: 'asset-health', 
+                    position: 2,
+                    data: generateAssetHealthData()
+                },
+                { 
+                    id: 'risk-alerts-1', 
+                    type: 'risk-alerts', 
+                    position: 3,
+                    data: generateRiskAlertsData()
+                },
+                { 
+                    id: 'assessment-queue-1', 
+                    type: 'assessment-queue', 
+                    position: 4,
+                    data: generateAssessmentQueueData()
+                },
+                { 
+                    id: 'quick-actions-1', 
+                    type: 'quick-actions', 
+                    position: 5,
+                    data: generateQuickActionsData()
                 }
-            }
+            ];
 
-            createAssetSummaryWidget() {
-                if (!this.currentAsset) return '<div class="text-gray-500">No asset selected</div>';
-                
-                return `
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <span class="text-2xl">${this.getAssetIcon(this.currentAsset.type)}</span>
-                                <div>
-                                    <h4 class="font-semibold text-gray-900">${this.currentAsset.name}</h4>
-                                    <p class="text-sm text-gray-600">${this.currentAsset.type} • ${this.currentAsset.domain}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold text-blue-600">${this.currentAsset.complianceScore}%</div>
-                                <div class="text-xs text-gray-500">compliance</div>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-gray-50 rounded-lg p-3">
-                                <div class="text-sm text-gray-600">Technology Stack</div>
-                                <div class="text-xs text-gray-800 mt-1">${this.currentAsset.attributes.technology.slice(0, 2).join(', ')}</div>
-                            </div>
-                            <div class="bg-gray-50 rounded-lg p-3">
-                                <div class="text-sm text-gray-600">Hosting</div>
-                                <div class="text-xs text-gray-800 mt-1">${this.currentAsset.attributes.hosting}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-600">Last assessed:</span>
-                            <span class="font-medium">${this.currentAsset.lastAssessed}</span>
-                        </div>
+            renderWorkspace();
+            updateWidgetCount();
+        }
+
+        function renderWorkspace() {
+            const container = document.getElementById('workspace-grid');
+            container.innerHTML = '';
+
+            // Apply grid settings
+            container.style.gridTemplateColumns = `repeat(${gridColumns}, 1fr)`;
+            const gapSizes = { tight: '1rem', normal: '1.5rem', loose: '2rem' };
+            container.style.gap = gapSizes[spacing];
+
+            widgets.sort((a, b) => a.position - b.position);
+
+            widgets.forEach(widget => {
+                const widgetDef = widgetCatalog.find(w => w.id === widget.type);
+                if (!widgetDef) return;
+
+                const widgetElement = createWidgetElement(widget, widgetDef);
+                container.appendChild(widgetElement);
+            });
+        }
+
+        function createWidgetElement(widget, widgetDef) {
+            const div = document.createElement('div');
+            div.className = `widget-card bg-white rounded-xl shadow-lg p-6 ${widgetDef.contextSensitive && isContextRelevant(widget.type) ? 'context-highlight' : ''}`;
+            div.draggable = true;
+            div.dataset.widgetId = widget.id;
+
+            // Widget header
+            const header = `
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl">${widgetDef.icon}</span>
+                        <h3 class="font-semibold text-gray-900">${widgetDef.title}</h3>
+                        ${widgetDef.contextSensitive ? '<span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Context</span>' : ''}
                     </div>
-                `;
-            }
-
-            createComplianceScoreWidget() {
-                const score = this.currentAsset?.complianceScore || 0;
-                const color = score >= 90 ? 'green' : score >= 75 ? 'yellow' : 'red';
-                
-                return `
-                    <div class="text-center space-y-4">
-                        <div class="relative w-24 h-24 mx-auto">
-                            <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-                                <circle cx="50" cy="50" r="40" fill="none" stroke="rgb(${color === 'green' ? '34, 197, 94' : color === 'yellow' ? '234, 179, 8' : '239, 68, 68'})" 
-                                        stroke-width="8" stroke-linecap="round" 
-                                        stroke-dasharray="${2 * Math.PI * 40}" 
-                                        stroke-dashoffset="${2 * Math.PI * 40 * (1 - score / 100)}"
-                                        class="transition-all duration-1000"/>
-                            </svg>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-2xl font-bold text-gray-900">${score}%</span>
-                            </div>
-                        </div>
-                        <div class="text-sm text-gray-600">Overall Compliance</div>
-                        <div class="text-xs text-${color}-600 font-medium">
-                            ${score >= 90 ? 'Excellent' : score >= 75 ? 'Good' : 'Needs Improvement'}
-                        </div>
+                    <div class="widget-toolbar flex items-center space-x-1">
+                        <button onclick="refreshWidget('${widget.id}')" class="p-1 text-gray-400 hover:text-gray-600 rounded">🔄</button>
+                        <button onclick="configureWidget('${widget.id}')" class="p-1 text-gray-400 hover:text-gray-600 rounded">⚙️</button>
+                        <button onclick="removeWidget('${widget.id}')" class="p-1 text-gray-400 hover:text-red-600 rounded">✕</button>
                     </div>
-                `;
-            }
+                </div>
+            `;
 
-            createRecentActivityWidget() {
-                const activities = [
-                    { type: 'assessment', desc: 'Security assessment completed', time: '2 hours ago', icon: '✅' },
-                    { type: 'requirement', desc: 'New API security requirement added', time: '5 hours ago', icon: '📋' },
-                    { type: 'update', desc: 'Compliance score updated', time: '1 day ago', icon: '📊' },
-                    { type: 'review', desc: 'Architecture requirements reviewed', time: '2 days ago', icon: '👁️' }
-                ];
+            // Widget content based on type
+            const content = generateWidgetContent(widget, widgetDef);
 
-                return `
-                    <div class="space-y-3">
-                        ${activities.map(activity => `
-                            <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-all">
-                                <span class="text-lg">${activity.icon}</span>
-                                <div class="flex-1">
-                                    <div class="text-sm font-medium text-gray-900">${activity.desc}</div>
-                                    <div class="text-xs text-gray-500">${activity.time}</div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            }
+            div.innerHTML = header + content;
 
-            createQuickActionsWidget() {
-                const actions = [
-                    { icon: '🔍', label: 'Find Requirements', action: 'findRequirements' },
-                    { icon: '📋', label: 'Start Assessment', action: 'startAssessment' },
-                    { icon: '📊', label: 'View Analytics', action: 'viewAnalytics' },
-                    { icon: '⚙️', label: 'Configure', action: 'configure' }
-                ];
+            // Add drag events
+            div.addEventListener('dragstart', handleDragStart);
+            div.addEventListener('dragend', handleDragEnd);
 
-                return `
-                    <div class="grid grid-cols-2 gap-2">
-                        ${actions.map(action => `
-                            <button class="p-3 bg-gray-50 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all text-center"
-                                    onclick="window.orchestrator.executeAction('${action.action}')">
-                                <div class="text-xl mb-1">${action.icon}</div>
-                                <div class="text-xs font-medium">${action.label}</div>
-                            </button>
-                        `).join('')}
-                    </div>
-                `;
-            }
+            return div;
+        }
 
-            createRequirementsListWidget() {
-                const requirements = getRequirementsForAsset(this.currentAsset?.id || 'asset-1');
-                
-                return `
-                    <div class="space-y-3">
-                        ${requirements.slice(0, 4).map(req => `
-                            <div class="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center mb-1">
-                                            <span class="w-2 h-2 rounded-full mr-2" style="background-color: ${this.getDomainColor(req.domain)}"></span>
-                                            <span class="text-xs font-medium text-gray-500 uppercase">${req.domain}</span>
-                                        </div>
-                                        <h5 class="text-sm font-semibold text-gray-900 mb-1">${req.title}</h5>
-                                        <p class="text-xs text-gray-600 line-clamp-2">${req.description}</p>
+        function generateWidgetContent(widget, widgetDef) {
+            switch (widget.type) {
+                case 'requirements-overview':
+                    return `
+                        <div class="space-y-3">
+                            ${widget.data.requirements.map(req => `
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-900">${req.title}</h4>
+                                        <p class="text-xs text-gray-600">${req.domain}</p>
                                     </div>
-                                    <span class="text-xs font-medium text-blue-600 ml-2">${req.relevanceScore}%</span>
+                                    <span class="px-2 py-1 text-xs rounded-full ${req.status === 'Met' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${req.status}</span>
                                 </div>
-                            </div>
-                        `).join('')}
-                        <button class="w-full text-sm text-blue-600 hover:text-blue-800 font-medium py-2">
-                            View All Requirements →
-                        </button>
-                    </div>
-                `;
-            }
-
-            createDomainFilterWidget() {
-                const domains = ['security', 'architecture', 'quality'];
-                
-                return `
-                    <div class="space-y-3">
-                        <div class="text-sm font-medium text-gray-800 mb-3">Filter by Domain</div>
-                        ${domains.map(domain => `
-                            <label class="flex items-center space-x-3 cursor-pointer">
-                                <input type="checkbox" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
-                                <div class="flex items-center space-x-2">
-                                    <span class="w-3 h-3 rounded-full" style="background-color: ${this.getDomainColor(domain)}"></span>
-                                    <span class="text-sm text-gray-700 capitalize">${domain}</span>
-                                </div>
-                            </label>
-                        `).join('')}
-                        
-                        <div class="pt-3 border-t border-gray-200">
-                            <div class="text-sm font-medium text-gray-800 mb-2">Priority Level</div>
-                            <select class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2">
-                                <option>All Priorities</option>
-                                <option>Mandatory</option>
-                                <option>Recommended</option>
-                            </select>
-                        </div>
-                    </div>
-                `;
-            }
-
-            createRequirementDetailsWidget() {
-                return `
-                    <div class="text-center py-8 text-gray-500">
-                        <span class="text-2xl mb-2 block">📄</span>
-                        <p class="text-sm">Select a requirement to view details</p>
-                    </div>
-                `;
-            }
-
-            createAssessmentProgressWidget() {
-                const progress = 65;
-                
-                return `
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="text-sm font-medium text-gray-800">Current Assessment</div>
-                            <div class="text-sm text-blue-600">${progress}% Complete</div>
-                        </div>
-                        
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${progress}%"></div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div class="text-center">
-                                <div class="text-lg font-bold text-green-600">12</div>
-                                <div class="text-gray-600">Completed</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-lg font-bold text-gray-600">8</div>
-                                <div class="text-gray-600">Remaining</div>
-                            </div>
-                        </div>
-                        
-                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded-lg transition-all">
-                            Continue Assessment
-                        </button>
-                    </div>
-                `;
-            }
-
-            createComplianceTrendsWidget() {
-                return `
-                    <div class="space-y-4">
-                        <div class="text-sm font-medium text-gray-800">90-Day Trend</div>
-                        
-                        <div class="h-20 bg-gray-50 rounded-lg flex items-end justify-around p-2">
-                            ${[75, 78, 82, 85, 87, 89, 92, 88].map((value, i) => `
-                                <div class="bg-blue-500 rounded-t" style="height: ${value}%; width: 8px;" 
-                                     title="Week ${i + 1}: ${value}%"></div>
                             `).join('')}
+                            <button onclick="viewAllRequirements()" class="w-full mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium">View All Requirements →</button>
                         </div>
-                        
-                        <div class="grid grid-cols-3 gap-2 text-xs text-center">
-                            <div>
-                                <div class="font-medium text-green-600">+5.2%</div>
-                                <div class="text-gray-600">This month</div>
-                            </div>
-                            <div>
-                                <div class="font-medium text-blue-600">88%</div>
-                                <div class="text-gray-600">Average</div>
-                            </div>
-                            <div>
-                                <div class="font-medium text-purple-600">92%</div>
-                                <div class="text-gray-600">Peak</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
+                    `;
 
-            createComplianceDashboardWidget() {
-                return `
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="text-center p-3 bg-green-50 rounded-lg">
-                                <div class="text-2xl font-bold text-green-600">${mockDashboardMetrics.totalAssets}</div>
-                                <div class="text-xs text-green-700">Assets</div>
-                            </div>
-                            <div class="text-center p-3 bg-blue-50 rounded-lg">
-                                <div class="text-2xl font-bold text-blue-600">${mockDashboardMetrics.complianceAverage}%</div>
-                                <div class="text-xs text-blue-700">Avg Score</div>
-                            </div>
-                            <div class="text-center p-3 bg-red-50 rounded-lg">
-                                <div class="text-2xl font-bold text-red-600">${Object.values(mockDashboardMetrics.openRisks).reduce((a, b) => a + b, 0)}</div>
-                                <div class="text-xs text-red-700">Open Risks</div>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-2">
-                            <div class="text-sm font-medium text-gray-800">Risk Distribution</div>
-                            <div class="space-y-1">
-                                ${Object.entries(mockDashboardMetrics.openRisks).map(([level, count]) => `
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="capitalize text-gray-600">${level}</span>
-                                        <span class="font-medium ${this.getRiskColor(level)}">${count}</span>
+                case 'compliance-score':
+                    return `
+                        <div class="text-center">
+                            <div class="text-4xl font-bold text-blue-600 mb-2">${widget.data.score}%</div>
+                            <p class="text-sm text-gray-600 mb-4">Overall Compliance</p>
+                            <div class="space-y-2">
+                                ${widget.data.breakdown.map(item => `
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">${item.domain}:</span>
+                                        <span class="font-medium">${item.score}%</span>
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
-                    </div>
-                `;
-            }
+                    `;
 
-            populateWidgetPalette() {
-                const availableWidgets = [
-                    { id: 'asset-summary', name: 'Asset Summary', category: 'Overview' },
-                    { id: 'compliance-score', name: 'Compliance Score', category: 'Overview' },
-                    { id: 'requirements-list', name: 'Requirements List', category: 'Requirements' },
-                    { id: 'assessment-progress', name: 'Assessment Progress', category: 'Assessments' },
-                    { id: 'compliance-trends', name: 'Compliance Trends', category: 'Analytics' },
-                    { id: 'risk-heatmap', name: 'Risk Heatmap', category: 'Analytics' }
-                ];
+                case 'asset-health':
+                    return `
+                        <div class="space-y-3">
+                            ${widget.data.assets.map(asset => `
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-lg">${asset.icon}</span>
+                                        <div>
+                                            <h4 class="text-sm font-medium text-gray-900">${asset.name}</h4>
+                                            <p class="text-xs text-gray-600">${asset.type}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-2 h-2 rounded-full ${asset.health === 'Healthy' ? 'bg-green-500' : asset.health === 'Warning' ? 'bg-yellow-500' : 'bg-red-500'}"></div>
+                                        <span class="text-xs text-gray-600">${asset.health}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
 
-                const container = document.getElementById('available-widgets');
-                container.innerHTML = availableWidgets.map(widget => `
-                    <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all"
-                         onclick="window.orchestrator.addWidgetToWorkspace('${widget.id}')">
-                        <div class="text-lg mb-2">${this.getWidgetConfig(widget.id).icon}</div>
-                        <div class="text-sm font-medium text-gray-900">${widget.name}</div>
-                        <div class="text-xs text-gray-500">${widget.category}</div>
-                    </div>
-                `).join('');
-            }
+                case 'risk-alerts':
+                    return `
+                        <div class="space-y-3">
+                            ${widget.data.alerts.map(alert => `
+                                <div class="p-3 bg-${alert.severity === 'High' ? 'red' : alert.severity === 'Medium' ? 'yellow' : 'blue'}-50 rounded-lg">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-medium text-gray-900">${alert.title}</span>
+                                        <span class="text-xs text-gray-500">${alert.time}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">${alert.description}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
 
-            populateFloatingActions() {
-                const actions = [
-                    { icon: '📊', label: 'Add Widget', action: () => this.toggleWidgetPalette() },
-                    { icon: '⚙️', label: 'Customize Layout', action: () => this.toggleLayoutMode() },
-                    { icon: '💾', label: 'Save Workspace', action: () => this.saveWorkspace() },
-                    { icon: '🔄', label: 'Reset View', action: () => this.resetWorkspace() },
-                    { icon: '📤', label: 'Export Data', action: () => this.exportData() }
-                ];
+                case 'assessment-queue':
+                    return `
+                        <div class="space-y-3">
+                            ${widget.data.assessments.map(assessment => `
+                                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-900">${assessment.title}</h4>
+                                        <p class="text-xs text-gray-600">Due: ${assessment.dueDate}</p>
+                                    </div>
+                                    <button onclick="startAssessment('${assessment.id}')" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Start</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
 
-                const container = document.getElementById('floating-actions');
-                container.innerHTML = actions.map(action => `
-                    <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 cursor-pointer rounded-lg text-sm"
-                         onclick="event.stopPropagation(); this.closest('.relative').querySelector('#floating-actions').classList.add('hidden')">
-                        <span>${action.icon}</span>
-                        <span class="text-gray-700">${action.label}</span>
-                    </div>
-                `).join('');
-            }
+                case 'quick-actions':
+                    return `
+                        <div class="grid grid-cols-2 gap-2">
+                            ${widget.data.actions.map(action => `
+                                <button onclick="executeAction('${action.id}')" class="p-3 text-center border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                                    <div class="text-lg mb-1">${action.icon}</div>
+                                    <div class="text-xs font-medium text-gray-900">${action.title}</div>
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
 
-            switchWorkspace(workspaceId) {
-                const workspace = this.workspaces.find(w => w.id === workspaceId);
-                if (!workspace) return;
+                case 'team-activity':
+                    return `
+                        <div class="space-y-3">
+                            ${widget.data.activities.map(activity => `
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <span class="text-sm">${activity.user[0]}</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900">${activity.action}</p>
+                                        <p class="text-xs text-gray-600">${activity.time}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
 
-                this.activeWorkspace = workspace;
-                this.renderWorkspaceTabs();
-                this.renderWidgets();
-                
-                trackInteraction('workspace_switch', { workspace: workspaceId });
-                trackNavigation(`workspace-orchestrator/${workspaceId}`);
-            }
+                case 'recent-changes':
+                    return `
+                        <div class="space-y-3">
+                            ${widget.data.changes.map(change => `
+                                <div class="p-3 border-l-4 border-blue-500 bg-blue-50">
+                                    <h4 class="text-sm font-medium text-gray-900">${change.title}</h4>
+                                    <p class="text-xs text-gray-600 mt-1">${change.description}</p>
+                                    <p class="text-xs text-blue-600 mt-1">${change.date}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
 
-            handleAssetChange(asset) {
-                this.currentAsset = asset;
-                this.renderWidgets(); // Refresh widgets with new asset context
-                this.updateContextIndicator();
-                trackNavigation(`workspace-orchestrator/asset/${asset.id}`);
-            }
-
-            handleRoleChange(newRole) {
-                this.currentUser = mockUsers[newRole];
-                trackInteraction('workspace_role_change', { role: newRole });
-                
-                const assets = getAssetsByUser(newRole);
-                this.currentAsset = assets[0];
-                
-                // Update components
-                this.setupComponents();
-                this.renderWidgets();
-                
-                Toast.show(`Workspace adapted for ${newRole} role`, 'success');
-            }
-
-            toggleWidgetPalette() {
-                const palette = document.getElementById('widget-palette');
-                palette.classList.toggle('hidden');
-                trackInteraction('widget_palette_toggle', {});
-            }
-
-            toggleLayoutMode() {
-                this.layoutMode = !this.layoutMode;
-                const button = document.getElementById('layout-mode');
-                
-                if (this.layoutMode) {
-                    button.className = button.className.replace('bg-gray-100', 'bg-blue-100').replace('text-gray-700', 'text-blue-700');
-                    Toast.show('Layout customization enabled', 'info');
-                } else {
-                    button.className = button.className.replace('bg-blue-100', 'bg-gray-100').replace('text-blue-700', 'text-gray-700');
-                    Toast.show('Layout customization disabled', 'info');
-                }
-                
-                this.renderWidgets();
-                trackInteraction('layout_mode_toggle', { enabled: this.layoutMode });
-            }
-
-            addWidgetToWorkspace(widgetId) {
-                if (!this.activeWorkspace.widgets.includes(widgetId)) {
-                    this.activeWorkspace.widgets.push(widgetId);
-                    this.renderWidgets();
-                    this.toggleWidgetPalette();
-                    Toast.show('Widget added to workspace', 'success');
-                    trackInteraction('widget_added', { widget: widgetId });
-                }
-            }
-
-            removeWidget(widgetId) {
-                this.activeWorkspace.widgets = this.activeWorkspace.widgets.filter(w => w !== widgetId);
-                this.renderWidgets();
-                Toast.show('Widget removed', 'info');
-                trackInteraction('widget_removed', { widget: widgetId });
-            }
-
-            refreshWidget(widgetId) {
-                // Simulate refresh with loading state
-                const widget = document.querySelector(`[data-widget-id="${widgetId}"] .widget-content`);
-                if (widget) {
-                    const originalContent = widget.innerHTML;
-                    widget.innerHTML = '<div class="text-center py-8"><div class="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto"></div></div>';
-                    
-                    setTimeout(() => {
-                        widget.innerHTML = this.getWidgetContent(widgetId);
-                    }, 1000);
-                }
-                
-                trackInteraction('widget_refresh', { widget: widgetId });
-            }
-
-            configureWidget(widgetId) {
-                Toast.show(`Configuring ${this.getWidgetConfig(widgetId).title}...`, 'info');
-                trackInteraction('widget_configure', { widget: widgetId });
-            }
-
-            executeAction(action) {
-                switch(action) {
-                    case 'findRequirements':
-                        this.switchWorkspace('requirements');
-                        break;
-                    case 'startAssessment':
-                        this.switchWorkspace('assessments');
-                        break;
-                    case 'viewAnalytics':
-                        this.switchWorkspace('analytics');
-                        break;
-                    case 'configure':
-                        this.toggleLayoutMode();
-                        break;
-                }
-                
-                trackInteraction('quick_action_execute', { action });
-            }
-
-            saveWorkspace() {
-                Toast.show('Workspace configuration saved', 'success');
-                trackInteraction('workspace_save', { workspace: this.activeWorkspace.id });
-            }
-
-            shareWorkspace() {
-                Toast.show('Workspace sharing link copied to clipboard', 'info');
-                trackInteraction('workspace_share', { workspace: this.activeWorkspace.id });
-            }
-
-            resetWorkspace() {
-                this.createDefaultWorkspaces();
-                this.renderWidgets();
-                Toast.show('Workspace reset to default', 'info');
-                trackInteraction('workspace_reset', {});
-            }
-
-            exportData() {
-                Toast.show('Exporting workspace data...', 'info');
-                trackInteraction('data_export', {});
-            }
-
-            toggleFloatingMenu() {
-                const menu = document.getElementById('floating-actions');
-                menu.classList.toggle('hidden');
-            }
-
-            showContextMenu() {
-                Toast.show('Context menu coming soon', 'info');
-            }
-
-            updateContextIndicator() {
-                const indicator = document.getElementById('current-context');
-                indicator.textContent = `${this.currentAsset?.type || 'General'} Development Context`;
-            }
-
-            setupDragAndDrop() {
-                // Simplified drag and drop for layout customization
-                document.addEventListener('dragstart', (e) => {
-                    if (e.target.classList.contains('widget')) {
-                        e.target.classList.add('widget-dragging');
-                        e.dataTransfer.setData('text/plain', e.target.dataset.widgetId);
-                    }
-                });
-
-                document.addEventListener('dragend', (e) => {
-                    if (e.target.classList.contains('widget')) {
-                        e.target.classList.remove('widget-dragging');
-                    }
-                });
-            }
-
-            bindWidgetEvents() {
-                // Bind any widget-specific events here
-            }
-
-            getDomainColor(domain) {
-                const colors = {
-                    security: '#EF4444',
-                    quality: '#10B981',
-                    architecture: '#3B82F6'
-                };
-                return colors[domain] || '#6B7280';
-            }
-
-            getRiskColor(level) {
-                const colors = {
-                    critical: 'text-red-600',
-                    high: 'text-orange-600',
-                    medium: 'text-yellow-600',
-                    low: 'text-green-600'
-                };
-                return colors[level] || 'text-gray-600';
-            }
-
-            getAssetIcon(type) {
-                const icons = {
-                    'api': '🔌',
-                    'web-app': '🌐',
-                    'mobile-app': '📱',
-                    'platform': '🏗️'
-                };
-                return icons[type] || '📦';
+                default:
+                    return '<p class="text-gray-500 text-sm">Widget content loading...</p>';
             }
         }
 
-        // Initialize Workspace Orchestrator
-        window.orchestrator = new WorkspaceOrchestrator();
+        // Generate mock data for widgets
+        function generateRequirementsData() {
+            return {
+                requirements: [
+                    { title: 'API Authentication', domain: 'Security', status: 'Met' },
+                    { title: 'Data Encryption', domain: 'Security', status: 'Pending' },
+                    { title: 'Rate Limiting', domain: 'Performance', status: 'Met' },
+                    { title: 'Error Handling', domain: 'Quality', status: 'Pending' }
+                ]
+            };
+        }
 
-        // Analytics Dashboard
-        const analyticsContainer = document.getElementById('analytics-dashboard');
-        analyticsContainer.innerHTML = AnalyticsDashboard.render && 
-            AnalyticsDashboard.render(navigationAnalytics) || '';
+        function generateComplianceData() {
+            return {
+                score: 78,
+                breakdown: [
+                    { domain: 'Security', score: 85 },
+                    { domain: 'Performance', score: 72 },
+                    { domain: 'Quality', score: 80 },
+                    { domain: 'Documentation', score: 65 }
+                ]
+            };
+        }
 
-        // Close floating menu when clicking outside
-        document.addEventListener('click', (e) => {
-            const floatingMenu = document.getElementById('floating-actions');
-            const floatingButton = document.getElementById('floating-menu');
-            
-            if (!floatingButton.contains(e.target) && !floatingMenu.contains(e.target)) {
-                floatingMenu.classList.add('hidden');
+        function generateAssetHealthData() {
+            return {
+                assets: [
+                    { name: 'Payment API', type: 'API Gateway', icon: '🔌', health: 'Healthy' },
+                    { name: 'User Database', type: 'PostgreSQL', icon: '🗄️', health: 'Warning' },
+                    { name: 'Auth Service', type: 'Microservice', icon: '🔐', health: 'Healthy' },
+                    { name: 'File Storage', type: 'S3 Bucket', icon: '📁', health: 'Healthy' }
+                ]
+            };
+        }
+
+        function generateRiskAlertsData() {
+            return {
+                alerts: [
+                    { title: 'Missing Rate Limiting', severity: 'High', description: 'API endpoints lack rate limiting controls', time: '5 min ago' },
+                    { title: 'Outdated Dependencies', severity: 'Medium', description: '3 security patches available', time: '1 hour ago' },
+                    { title: 'Documentation Gap', severity: 'Low', description: 'API documentation needs update', time: '2 hours ago' }
+                ]
+            };
+        }
+
+        function generateAssessmentQueueData() {
+            return {
+                assessments: [
+                    { id: 'sec-001', title: 'Security Assessment Q4', dueDate: 'Dec 15, 2024' },
+                    { id: 'perf-002', title: 'Performance Review', dueDate: 'Dec 20, 2024' },
+                    { id: 'qual-003', title: 'Code Quality Audit', dueDate: 'Jan 5, 2025' }
+                ]
+            };
+        }
+
+        function generateQuickActionsData() {
+            return {
+                actions: [
+                    { id: 'new-req', title: 'New Requirement', icon: '📋' },
+                    { id: 'start-assess', title: 'Start Assessment', icon: '📝' },
+                    { id: 'view-reports', title: 'View Reports', icon: '📊' },
+                    { id: 'manage-risks', title: 'Manage Risks', icon: '⚠️' }
+                ]
+            };
+        }
+
+        // Widget catalog functions
+        function populateWidgetCatalog() {
+            const container = document.getElementById('widget-catalog-grid');
+            container.innerHTML = widgetCatalog.map(widget => `
+                <div class="widget-catalog-item p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all"
+                     onclick="addWidgetToWorkspace('${widget.id}')">
+                    <div class="flex items-center mb-2">
+                        <span class="text-2xl mr-3">${widget.icon}</span>
+                        <div>
+                            <h4 class="font-medium text-gray-900">${widget.title}</h4>
+                            <p class="text-xs text-gray-600">${widget.category}</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">${widget.description}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs px-2 py-1 bg-gray-100 rounded-full">${widget.size}</span>
+                        ${widget.contextSensitive ? '<span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Context</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showWidgetCatalog() {
+            document.getElementById('widget-catalog-modal').classList.remove('hidden');
+        }
+
+        function hideWidgetCatalog() {
+            document.getElementById('widget-catalog-modal').classList.add('hidden');
+        }
+
+        function addWidgetToWorkspace(widgetType) {
+            const widgetId = widgetType + '-' + Date.now();
+            const newWidget = {
+                id: widgetId,
+                type: widgetType,
+                position: widgets.length,
+                data: generateDataForWidget(widgetType)
+            };
+
+            widgets.push(newWidget);
+            renderWorkspace();
+            updateWidgetCount();
+            hideWidgetCatalog();
+            showNotification(`Added ${widgetCatalog.find(w => w.id === widgetType).title} widget`);
+        }
+
+        function generateDataForWidget(widgetType) {
+            switch (widgetType) {
+                case 'requirements-overview': return generateRequirementsData();
+                case 'compliance-score': return generateComplianceData();
+                case 'asset-health': return generateAssetHealthData();
+                case 'risk-alerts': return generateRiskAlertsData();
+                case 'assessment-queue': return generateAssessmentQueueData();
+                case 'quick-actions': return generateQuickActionsData();
+                case 'team-activity': return {
+                    activities: [
+                        { user: 'John D', action: 'Completed security assessment', time: '2 min ago' },
+                        { user: 'Lisa T', action: 'Updated API requirements', time: '5 min ago' },
+                        { user: 'Mike R', action: 'Added new risk entry', time: '10 min ago' }
+                    ]
+                };
+                case 'recent-changes': return {
+                    changes: [
+                        { title: 'API Security Standards Updated', description: 'New OAuth 2.1 requirements added', date: 'Dec 10, 2024' },
+                        { title: 'Performance Guidelines Revised', description: 'Updated response time thresholds', date: 'Dec 8, 2024' }
+                    ]
+                };
+                default: return {};
             }
-        });
+        }
+
+        // Layout customization functions
+        function toggleCustomizeMode() {
+            customizeMode = !customizeMode;
+            const panel = document.getElementById('customize-panel');
+            
+            if (customizeMode) {
+                panel.classList.remove('translate-x-full');
+            } else {
+                panel.classList.add('translate-x-full');
+            }
+        }
+
+        function setGridColumns(columns) {
+            gridColumns = columns;
+            renderWorkspace();
+            
+            // Update UI to show selected option
+            document.querySelectorAll('#customize-panel button').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'text-blue-700');
+            });
+            event.target.classList.add('bg-blue-50', 'text-blue-700');
+        }
+
+        function setSpacing(newSpacing) {
+            spacing = newSpacing;
+            renderWorkspace();
+            
+            // Update UI to show selected option
+            document.querySelectorAll('#customize-panel button').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'text-blue-700');
+            });
+            event.target.classList.add('bg-blue-50', 'text-blue-700');
+        }
+
+        function loadTemplate(template) {
+            const templates = {
+                developer: ['requirements-overview', 'asset-health', 'quick-actions', 'recent-changes'],
+                manager: ['compliance-score', 'team-activity', 'risk-alerts', 'assessment-queue'],
+                compliance: ['requirements-overview', 'compliance-score', 'risk-alerts', 'assessment-queue', 'recent-changes']
+            };
+
+            const templateWidgets = templates[template] || [];
+            widgets = templateWidgets.map((type, index) => ({
+                id: type + '-' + Date.now() + '-' + index,
+                type: type,
+                position: index,
+                data: generateDataForWidget(type)
+            }));
+
+            renderWorkspace();
+            updateWidgetCount();
+            showNotification(`Loaded ${template} template`);
+        }
+
+        // Context switching
+        function showContextMenu() {
+            const menu = document.getElementById('context-menu');
+            const button = document.getElementById('current-context');
+            const rect = button.getBoundingClientRect();
+            
+            menu.style.top = (rect.bottom + 5) + 'px';
+            menu.style.left = rect.left + 'px';
+            menu.classList.remove('hidden');
+            
+            // Hide menu when clicking elsewhere
+            document.addEventListener('click', function hideMenu(e) {
+                if (!menu.contains(e.target) && !button.contains(e.target)) {
+                    menu.classList.add('hidden');
+                    document.removeEventListener('click', hideMenu);
+                }
+            });
+        }
+
+        function switchContext(context) {
+            currentContext = context;
+            const contextNames = {
+                api: '🔌 API Development Context',
+                mobile: '📱 Mobile App Context',
+                platform: '🏗️ Platform Architecture Context',
+                security: '🔒 Security Review Context'
+            };
+            
+            document.getElementById('current-context').textContent = contextNames[context];
+            document.getElementById('context-menu').classList.add('hidden');
+            
+            // Update context-sensitive widgets
+            renderWorkspace();
+            showNotification(`Switched to ${contextNames[context]}`);
+        }
+
+        function isContextRelevant(widgetType) {
+            const contextRelevance = {
+                api: ['requirements-overview', 'compliance-score', 'asset-health', 'quick-actions'],
+                mobile: ['asset-health', 'compliance-score', 'quick-actions'],
+                platform: ['requirements-overview', 'asset-health', 'quick-actions'],
+                security: ['requirements-overview', 'compliance-score', 'asset-health', 'risk-alerts']
+            };
+            
+            return contextRelevance[currentContext]?.includes(widgetType) || false;
+        }
+
+        // Widget actions
+        function removeWidget(widgetId) {
+            widgets = widgets.filter(w => w.id !== widgetId);
+            renderWorkspace();
+            updateWidgetCount();
+            showNotification('Widget removed');
+        }
+
+        function refreshWidget(widgetId) {
+            const widget = widgets.find(w => w.id === widgetId);
+            if (widget) {
+                widget.data = generateDataForWidget(widget.type);
+                renderWorkspace();
+                showNotification('Widget refreshed');
+            }
+        }
+
+        function configureWidget(widgetId) {
+            showNotification('Widget configuration panel would open here');
+        }
+
+        // Drag and drop
+        let draggedWidget = null;
+
+        function handleDragStart(e) {
+            draggedWidget = e.target.dataset.widgetId;
+            e.target.classList.add('widget-dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('widget-dragging');
+            draggedWidget = null;
+        }
+
+        // Workspace actions
+        function saveWorkspace() {
+            document.getElementById('last-saved').textContent = 'just now';
+            showNotification('Workspace saved successfully');
+        }
+
+        function shareWorkspace() {
+            showNotification('Workspace sharing link copied to clipboard');
+        }
+
+        function updateWidgetCount() {
+            document.getElementById('widget-count').textContent = widgets.length;
+        }
+
+        // Quick actions
+        function viewAllRequirements() {
+            showNotification('Opening requirements dashboard...');
+        }
+
+        function startAssessment(assessmentId) {
+            showNotification(`Starting assessment ${assessmentId}...`);
+        }
+
+        function executeAction(actionId) {
+            const actions = {
+                'new-req': 'Creating new requirement...',
+                'start-assess': 'Starting new assessment...',
+                'view-reports': 'Opening reports dashboard...',
+                'manage-risks': 'Opening risk management...'
+            };
+            showNotification(actions[actionId] || 'Executing action...');
+        }
+
+        // Utility functions
+        function showNotification(message) {
+            // Create temporary notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
     </script>
 </body>
 </html>

@@ -8,38 +8,100 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .story-chapter { opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
-        .story-chapter.visible { opacity: 1; transform: translateY(0); }
-        .journey-line { height: 4px; background: linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%); }
-        .story-node { transition: all 0.3s ease; }
-        .story-node:hover { transform: scale(1.05); }
-        .story-node.active { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3); }
-        .narrative-flow { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .chapter-card { border-left: 4px solid transparent; transition: all 0.3s ease; }
-        .chapter-card.security { border-left-color: #ef4444; }
-        .chapter-card.architecture { border-left-color: #3b82f6; }
-        .chapter-card.quality { border-left-color: #10b981; }
-        .story-progress { width: 0%; transition: width 1s ease; }
-        .floating-story { animation: storyteller 6s ease-in-out infinite; }
         
-        @keyframes storyteller {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            25% { transform: translateY(-5px) rotate(1deg); }
-            75% { transform: translateY(-2px) rotate(-1deg); }
+        /* Story animations */
+        .story-card { 
+            transition: all 0.3s ease;
+            animation: storyUnfold 0.6s ease-out;
         }
-
-        /* Story timeline */
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: 20px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: linear-gradient(to bottom, #e5e7eb, #d1d5db);
+        .story-card:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
         }
         
-        .timeline-item:last-child::before { display: none; }
+        /* Journey progress animations */
+        .journey-step {
+            transition: all 0.4s ease;
+        }
+        .journey-step.active {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        .journey-step.completed {
+            animation: stepComplete 0.6s ease-out;
+        }
+        
+        /* Story connection lines */
+        .connection-line {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+            height: 2px;
+            animation: connectionFlow 3s ease-in-out infinite;
+        }
+        
+        /* Chapter progress */
+        .chapter-progress {
+            background: linear-gradient(90deg, #10b981 0%, #10b981 var(--progress, 0%), #e5e7eb var(--progress, 0%));
+            transition: background 1s ease-in-out;
+        }
+        
+        /* Narrative text animations */
+        .narrative-text {
+            animation: typewriter 2s ease-out;
+            border-right: 2px solid #3b82f6;
+        }
+        
+        /* Interactive story elements */
+        .story-choice {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #0ea5e9;
+            transition: all 0.3s ease;
+        }
+        .story-choice:hover {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            transform: translateX(4px);
+        }
+        
+        /* Journey map styling */
+        .journey-map {
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+        }
+        
+        /* Story insights panel */
+        .insight-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+        }
+        
+        @keyframes storyUnfold {
+            from { opacity: 0; transform: rotateX(-90deg); }
+            to { opacity: 1; transform: rotateX(0deg); }
+        }
+        
+        @keyframes stepComplete {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); background-color: #10b981; }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes connectionFlow {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        /* Progress ring animation */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring circle {
+            transition: stroke-dashoffset 0.6s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -52,20 +114,16 @@
                     <p class="text-sm text-gray-600">Navigate governance through interconnected stories</p>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <!-- Story Progress -->
-                    <div class="flex items-center space-x-2 bg-purple-50 px-3 py-2 rounded-lg">
-                        <span class="text-2xl floating-story">📖</span>
-                        <div>
-                            <div class="text-sm font-medium text-purple-700">Chapter Progress</div>
-                            <div class="text-xs text-purple-600" id="story-progress-text">Beginning your journey...</div>
-                        </div>
+                    <!-- Chapter Progress -->
+                    <div class="flex items-center space-x-2 bg-purple-100 text-purple-800 px-3 py-2 rounded-lg">
+                        <span class="text-sm">📖</span>
+                        <span class="text-sm font-medium" id="chapter-indicator">Chapter Progress</span>
+                        <span class="text-sm" id="chapter-progress">Beginning your journey...</span>
                     </div>
-                    <!-- Role Switcher -->
-                    <div id="role-selector"></div>
                     <!-- User Info -->
                     <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <span class="text-sm font-medium text-purple-700">SC</span>
+                        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-medium text-white">SC</span>
                         </div>
                         <span class="text-sm font-medium text-gray-700">Sarah Chen</span>
                     </div>
@@ -74,775 +132,574 @@
         </div>
     </header>
 
-    <!-- Journey Navigation -->
-    <div class="narrative-flow text-white">
-        <div class="container mx-auto px-6 py-8">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold mb-4">Your Compliance Story Unfolds</h2>
-                <p class="text-white/80 max-w-2xl mx-auto">
-                    Every requirement tells a story, every assessment is a chapter, and every compliance milestone is a victory. 
-                    Let's explore your governance journey through narrative.
-                </p>
-            </div>
-            
-            <!-- Story Timeline -->
-            <div class="relative max-w-4xl mx-auto">
-                <div class="journey-line w-full rounded-full mb-8"></div>
-                <div class="flex justify-between items-center" id="story-timeline">
-                    <!-- Timeline nodes will be populated here -->
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-purple-800 text-white py-16">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold mb-4">Your Compliance Story Unfolds</h2>
+            <p class="text-xl mb-8 max-w-4xl mx-auto">
+                Every requirement tells a story, every assessment is a chapter, and every compliance 
+                milestone is a victory. Let's explore your governance journey through narrative.
+            </p>
+            <div class="flex justify-center">
+                <div class="bg-white bg-opacity-20 rounded-full px-8 py-2">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                            <span class="text-sm">Current Chapter: Setting the Foundation</span>
+                        </div>
+                        <div class="w-px h-4 bg-white bg-opacity-30"></div>
+                        <div class="text-sm" id="journey-progress">12% Complete</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Main Content -->
     <div class="container mx-auto px-6 py-8">
         <div class="grid lg:grid-cols-3 gap-8">
-            <!-- Left Panel: Story Navigation -->
+            <!-- Left Panel: Story Chapters -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="story-card bg-white rounded-xl shadow-lg p-6 mb-6">
                     <div class="flex items-center mb-4">
                         <span class="text-2xl mr-3">📚</span>
                         <h3 class="text-lg font-semibold text-gray-900">Story Chapters</h3>
                     </div>
-                    
                     <div class="space-y-3" id="story-chapters">
                         <!-- Story chapters will be populated here -->
                     </div>
                 </div>
 
-                <!-- Character Context (Asset) -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <!-- Story Context -->
+                <div class="story-card bg-white rounded-xl shadow-lg p-6">
                     <div class="flex items-center mb-4">
                         <span class="text-2xl mr-3">🎭</span>
                         <h3 class="text-lg font-semibold text-gray-900">Story Context</h3>
                     </div>
-                    
                     <div id="story-context">
-                        <!-- Asset context will be populated here -->
+                        <!-- Story context will be populated here -->
                     </div>
-                    
-                    <div class="mt-4" id="asset-selector-container"></div>
                 </div>
             </div>
 
-            <!-- Center Panel: Main Story Content -->
+            <!-- Center Panel: Current Chapter -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center space-x-3">
-                            <span class="text-2xl" id="chapter-icon">🏁</span>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900" id="chapter-title">Beginning Your Journey</h3>
-                                <p class="text-sm text-gray-600" id="chapter-subtitle">Setting the stage for compliance success</p>
+                <div class="story-card bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900" id="current-chapter-title">Beginning Your Journey</h3>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <span>Progress</span>
+                            <div class="ml-2 w-16 h-2 bg-gray-200 rounded-full">
+                                <div class="h-full bg-blue-600 rounded-full transition-all duration-500" style="width: 0%" id="current-progress-bar"></div>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-sm text-gray-600">Progress</div>
-                            <div class="text-lg font-bold text-purple-600" id="chapter-progress">0%</div>
-                        </div>
                     </div>
                     
-                    <!-- Story Content -->
-                    <div id="story-content" class="prose prose-sm max-w-none">
-                        <!-- Main story content will be populated here -->
+                    <div id="chapter-content" class="space-y-4">
+                        <!-- Chapter content will be populated here -->
                     </div>
                     
-                    <!-- Story Actions -->
-                    <div class="mt-6 flex space-x-3" id="story-actions">
-                        <!-- Action buttons will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Panel: Related Stories & Insights -->
-            <div class="lg:col-span-1">
-                <!-- Related Requirements Stories -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <div class="flex items-center mb-4">
-                        <span class="text-2xl mr-3">🔗</span>
-                        <h3 class="text-lg font-semibold text-gray-900">Connected Stories</h3>
-                    </div>
-                    
-                    <div class="space-y-3" id="connected-stories">
-                        <!-- Related stories will be populated here -->
-                    </div>
-                </div>
-
-                <!-- Story Insights -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <div class="flex items-center mb-4">
-                        <span class="text-2xl mr-3">💡</span>
-                        <h3 class="text-lg font-semibold text-gray-900">Story Insights</h3>
-                    </div>
-                    
-                    <div class="space-y-3" id="story-insights">
-                        <!-- Insights will be populated here -->
+                    <div class="mt-6 space-y-2" id="story-choices">
+                        <!-- Story choices will be populated here -->
                     </div>
                 </div>
 
                 <!-- Journey Map -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="story-card bg-white rounded-xl shadow-lg p-6">
                     <div class="flex items-center mb-4">
                         <span class="text-2xl mr-3">🗺️</span>
                         <h3 class="text-lg font-semibold text-gray-900">Journey Map</h3>
                     </div>
-                    
-                    <div id="journey-map">
-                        <!-- Journey visualization will be populated here -->
+                    <div class="journey-map p-4 rounded-lg">
+                        <div id="journey-visualization" class="relative">
+                            <!-- Journey visualization will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Connected Stories & Insights -->
+            <div class="lg:col-span-1">
+                <!-- Connected Stories -->
+                <div class="story-card bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex items-center mb-4">
+                        <span class="text-2xl mr-3">🔗</span>
+                        <h3 class="text-lg font-semibold text-gray-900">Connected Stories</h3>
+                    </div>
+                    <div id="connected-stories" class="space-y-3">
+                        <!-- Connected stories will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Story Insights -->
+                <div class="story-card bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex items-center mb-4">
+                        <span class="text-2xl mr-3">💡</span>
+                        <h3 class="text-lg font-semibold text-gray-900">Story Insights</h3>
+                    </div>
+                    <div id="story-insights" class="space-y-3">
+                        <!-- Story insights will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Achievement Progress -->
+                <div class="story-card bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="text-2xl mr-3">🏆</span>
+                        <h3 class="text-lg font-semibold text-gray-900">Achievements</h3>
+                    </div>
+                    <div id="achievements" class="space-y-3">
+                        <!-- Achievements will be populated here -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Analytics Footer -->
-    <div id="analytics-dashboard" class="mt-8"></div>
+    <script>
+        // Global state
+        let currentChapter = 0;
+        let chapterProgress = 0;
+        let userChoices = [];
+        let completedAchievements = [];
 
-    <!-- Scripts -->
-    <script type="module">
-        import { 
-            mockUsers, mockAssets, mockRequirements, trackInteraction, trackNavigation,
-            getAssetsByUser, getRequirementsForAsset, navigationAnalytics
-        } from '../shared/mockData.js';
-        
-        import { 
-            AssetContextSwitcher, RoleSelector, RequirementCard, 
-            AnalyticsDashboard, Toast
-        } from '../shared/components.js';
+        // Story data structure
+        const storyChapters = [
+            {
+                id: 'foundation',
+                title: 'Setting the Foundation',
+                description: 'Understanding your governance landscape',
+                content: `Welcome to your compliance journey, Sarah! As a software architect, you're embarking on a quest to ensure your API systems meet all governance requirements.
 
-        // Journey Storyteller State
-        class JourneyStoryteller {
-            constructor() {
-                this.currentUser = mockUsers.architect;
-                this.currentAsset = null;
-                this.currentChapter = 'beginning';
-                this.storyProgress = 0;
-                this.completedChapters = [];
-                this.storyChapters = this.initializeStoryChapters();
-                this.timelineNodes = this.initializeTimeline();
-                this.init();
+Your story begins with the **Payment Gateway API** - a critical system that processes thousands of transactions daily. Like any epic tale, this journey has challenges, allies, and treasures to discover.
+
+**The Challenge**: Your API must comply with security, performance, and data protection standards before the upcoming audit.`,
+                choices: [
+                    { text: 'Begin with Security Requirements', action: 'security-path' },
+                    { text: 'Start with Performance Standards', action: 'performance-path' },
+                    { text: 'Review All Requirements First', action: 'overview-path' }
+                ],
+                connections: ['security-quest', 'performance-saga'],
+                insights: ['APIs are the backbone of modern applications', 'Security-first approach reduces technical debt'],
+                progress: 0
+            },
+            {
+                id: 'security-quest',
+                title: 'The Security Quest',
+                description: 'Protecting your digital fortress',
+                content: `You've chosen the path of security - a wise decision! Your API fortress needs strong defenses against digital threats.
+
+**Chapter 2: The Security Quest**
+
+The OAuth Guardian appears before you, explaining the ancient art of authentication. "Three trials await," the Guardian declares:
+
+1. **The Authentication Trial**: Implement OAuth 2.0
+2. **The Encryption Challenge**: Secure data in transit and at rest  
+3. **The Rate Limiting Test**: Protect against overwhelming forces
+
+Each trial completed strengthens your API's defenses and brings you closer to compliance mastery.`,
+                choices: [
+                    { text: 'Accept the Authentication Trial', action: 'auth-trial' },
+                    { text: 'Learn about Encryption Secrets', action: 'encryption-path' },
+                    { text: 'Master Rate Limiting First', action: 'rate-limit-path' }
+                ],
+                connections: ['encryption-saga', 'performance-saga'],
+                insights: ['OAuth 2.0 is the gold standard for API authentication', 'Security layers create defense in depth'],
+                progress: 25
+            },
+            {
+                id: 'performance-saga',
+                title: 'The Performance Saga',
+                description: 'Optimizing for speed and reliability',
+                content: `The path of performance leads you to the Temple of Speed, where the Response Time Oracle awaits.
+
+**Chapter 3: The Performance Saga**
+
+"Speed without reliability is meaningless," the Oracle intones. "Reliability without monitoring is blind faith."
+
+Your performance quest involves three sacred metrics:
+- **Response Time**: Under 200ms for 95% of requests
+- **Throughput**: Handle 1000 requests per second
+- **Availability**: Maintain 99.9% uptime
+
+The Oracle offers you three paths to achieve performance enlightenment.`,
+                choices: [
+                    { text: 'Optimize Response Times', action: 'response-optimization' },
+                    { text: 'Scale for Throughput', action: 'throughput-scaling' },
+                    { text: 'Build Monitoring Systems', action: 'monitoring-setup' }
+                ],
+                connections: ['monitoring-chronicle', 'quality-journey'],
+                insights: ['Performance requirements should drive architecture decisions', 'Monitoring is essential for maintaining performance'],
+                progress: 50
+            },
+            {
+                id: 'compliance-victory',
+                title: 'The Compliance Victory',
+                description: 'Achieving governance mastery',
+                content: `Congratulations, Sarah! You've reached the final chapter of your compliance journey.
+
+**Chapter 4: The Compliance Victory**
+
+Through your dedication to security, performance, and quality, your Payment Gateway API has achieved full compliance. The once-challenging requirements have become the foundation of a robust, secure, and high-performing system.
+
+**Your Achievement Summary**:
+- ✅ All security requirements met
+- ✅ Performance benchmarks exceeded  
+- ✅ Quality standards implemented
+- ✅ Documentation completed
+
+Your API is now ready for the audit, and more importantly, it's built to scale and evolve with your organization's needs.`,
+                choices: [
+                    { text: 'Start Next Project', action: 'new-journey' },
+                    { text: 'Share Your Success Story', action: 'share-story' },
+                    { text: 'Mentor Other Teams', action: 'mentor-mode' }
+                ],
+                connections: [],
+                insights: ['Compliance is a journey, not a destination', 'Well-architected systems are inherently more compliant'],
+                progress: 100
             }
+        ];
 
-            init() {
-                this.setupComponents();
-                this.renderStoryTimeline();
-                this.renderStoryChapters();
-                this.loadChapter(this.currentChapter);
-                this.updateStoryContext();
-                this.generateConnectedStories();
-                this.updateJourneyMap();
-                this.startStorytellingAnimation();
+        // Connected stories data
+        const connectedStories = [
+            {
+                title: 'The Database Security Saga',
+                description: 'How encryption requirements connect to your data layer',
+                connection: 'security-quest',
+                relevance: 'high'
+            },
+            {
+                title: 'The Monitoring Chronicles',
+                description: 'Performance insights that enhance security monitoring',
+                connection: 'performance-saga',
+                relevance: 'medium'
+            },
+            {
+                title: 'The Audit Adventure',
+                description: 'Preparing for the final compliance review',
+                connection: 'compliance-victory',
+                relevance: 'high'
             }
+        ];
 
-            setupComponents() {
-                // Role Selector
-                const roleContainer = document.getElementById('role-selector');
-                new RoleSelector(roleContainer, ['architect', 'developer', 'manager'], 
-                    this.currentUser.role, (newRole) => this.handleRoleChange(newRole));
+        // Initialize the storyteller
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeStorytellerMode();
+            renderCurrentChapter();
+            populateStoryChapters();
+            updateConnectedStories();
+            updateStoryInsights();
+            updateAchievements();
+            startJourneyVisualization();
+        });
 
-                // Asset Context Switcher
-                const assets = getAssetsByUser(this.currentUser.role);
-                this.currentAsset = assets[0];
-                
-                const assetContainer = document.getElementById('asset-selector-container');
-                new AssetContextSwitcher(assetContainer, assets, (asset) => this.handleAssetChange(asset));
-            }
+        function initializeStorytellerMode() {
+            currentChapter = 0;
+            chapterProgress = 0;
+            updateChapterIndicator();
+        }
 
-            initializeStoryChapters() {
-                return {
-                    beginning: {
-                        id: 'beginning',
-                        title: 'The Quest Begins',
-                        icon: '🏁',
-                        domain: 'general',
-                        subtitle: 'Setting the foundation for your compliance journey',
-                        story: `Welcome to your compliance adventure! Every great story starts with a hero - and that's you, ${this.currentUser.name}.
+        function renderCurrentChapter() {
+            const chapter = storyChapters[currentChapter];
+            if (!chapter) return;
 
-**Your Mission:**
-Your digital assets need protection, guidance, and careful attention to thrive in today's complex regulatory landscape. You're not just checking boxes - you're crafting a narrative of security, quality, and architectural excellence.
+            // Update chapter title and content
+            document.getElementById('current-chapter-title').textContent = chapter.title;
+            document.getElementById('chapter-content').innerHTML = `
+                <div class="narrative-text prose prose-sm text-gray-700">
+                    ${chapter.content.split('\n\n').map(paragraph => `<p class="mb-4">${paragraph}</p>`).join('')}
+                </div>
+            `;
 
-**The Path Ahead:**
-- 🛡️ **Security Chapter**: Protect your digital realm from threats
-- 🏗️ **Architecture Chapter**: Build foundations that will stand the test of time  
-- ✨ **Quality Chapter**: Ensure excellence in every line of code
+            // Update progress bar
+            const progressBar = document.getElementById('current-progress-bar');
+            setTimeout(() => {
+                progressBar.style.width = chapter.progress + '%';
+            }, 500);
 
-**Your Current Context:**
-You're responsible for **${this.currentAsset?.name || 'your digital assets'}**, a ${this.currentAsset?.type || 'valuable system'} that serves the ${this.currentAsset?.domain || 'business'} domain. Every decision you make shapes its destiny.
+            // Render story choices
+            renderStoryChoices(chapter.choices);
 
-Ready to begin this journey? Choose your first chapter and let the story unfold...`,
-                        nextChapters: ['security-awakening', 'architecture-foundation', 'quality-pursuit'],
-                        requirements: [],
-                        progress: 0
-                    },
-                    'security-awakening': {
-                        id: 'security-awakening',
-                        title: 'The Security Awakening',
-                        icon: '🛡️',
-                        domain: 'security',
-                        subtitle: 'Discovering the guardians and shields of your digital realm',
-                        story: `In the realm of digital security, threats lurk in shadows and trust must be earned. Your ${this.currentAsset?.name || 'system'} stands at the crossroads of vulnerability and protection.
+            // Update journey progress
+            document.getElementById('journey-progress').textContent = `${chapter.progress}% Complete`;
+        }
 
-**The Security Saga Unfolds:**
+        function renderStoryChoices(choices) {
+            const container = document.getElementById('story-choices');
+            container.innerHTML = choices.map((choice, index) => `
+                <button onclick="makeStoryChoice('${choice.action}', ${index})" 
+                        class="story-choice w-full text-left p-3 rounded-lg text-sm font-medium transition-all">
+                    ${choice.text}
+                </button>
+            `).join('');
+        }
 
-*Chapter 1: The Guardian\'s Code*
-Multi-factor authentication isn't just a requirement - it's your system's first line of defense. Like a fortress with multiple gates, each authentication factor tells part of the story of who seeks entry.
+        function populateStoryChapters() {
+            const container = document.getElementById('story-chapters');
+            container.innerHTML = storyChapters.map((chapter, index) => {
+                const isCompleted = index < currentChapter;
+                const isCurrent = index === currentChapter;
+                const isLocked = index > currentChapter;
 
-*Chapter 2: The Vault of Secrets*
-Your data holds secrets that must be protected. Encryption at rest is like placing your most precious treasures in an enchanted vault where only the worthy can decipher the contents.
-
-*Chapter 3: The Watchtower*
-API rate limiting stands as your vigilant watchtower, ensuring that no siege overwhelms your defenses while welcoming legitimate travelers.
-
-**Your Security Allies:**
-These requirements aren't obstacles - they're your companions on this journey, each with their own story of protection and wisdom.`,
-                        nextChapters: ['architecture-foundation', 'quality-pursuit'],
-                        requirements: mockRequirements.security,
-                        progress: 33
-                    },
-                    'architecture-foundation': {
-                        id: 'architecture-foundation',
-                        title: 'The Architecture Foundation',
-                        icon: '🏗️',
-                        domain: 'architecture',
-                        subtitle: 'Building the pillars that will support your digital empire',
-                        story: `Every great civilization is built upon strong foundations. Your ${this.currentAsset?.type || 'system'} requires architectural wisdom that will stand the test of time and scale.
-
-**The Architect\'s Vision:**
-
-*Chapter 1: The Microservices Harmony*
-Like a symphony where each musician plays their part perfectly, microservices create harmony through independence. Each service tells its own story while contributing to the greater narrative.
-
-*Chapter 2: The Message Bearer\'s Network*
-Event-driven architecture is the nervous system of your digital realm, carrying messages and signals that keep all parts connected and responsive.
-
-*Chapter 3: The API Covenant*
-API-first design is your promise to the future - a contract that ensures your system can grow, adapt, and welcome new chapters in its story.
-
-**The Master Plan:**
-These aren't just technical decisions - they're the architectural choices that will determine whether your system becomes a legend or a cautionary tale.`,
-                        nextChapters: ['quality-pursuit', 'security-awakening'],
-                        requirements: mockRequirements.architecture,
-                        progress: 66
-                    },
-                    'quality-pursuit': {
-                        id: 'quality-pursuit',
-                        title: 'The Quality Pursuit',
-                        icon: '✨',
-                        domain: 'quality',
-                        subtitle: 'Crafting excellence in every line of code and process',
-                        story: `Excellence isn't an accident - it's a pursuit, a commitment to crafting something worthy of pride. Your ${this.currentAsset?.name || 'system'} deserves nothing less than the finest quality.
-
-**The Quality Craftsman\'s Code:**
-
-*Chapter 1: The Testing Tapestry*
-Automated testing weaves a safety net beneath your code, catching errors before they become epic failures. Each test is a small story of expected behavior and reliable outcomes.
-
-*Chapter 2: The Performance Chronicle*
-Monitoring isn't just watching - it's understanding the heartbeat of your system, reading the story it tells through metrics and patterns.
-
-*Chapter 3: The Code Quality Codex*
-Quality gates stand as checkpoints in your development journey, ensuring that every change adds to the story rather than detracting from it.
-
-**The Excellence Expedition:**
-Quality isn't a destination - it's a way of traveling. These requirements guide your steps on the path to creating something truly remarkable.`,
-                        nextChapters: ['compliance-mastery'],
-                        requirements: mockRequirements.quality,
-                        progress: 90
-                    },
-                    'compliance-mastery': {
-                        id: 'compliance-mastery',
-                        title: 'The Compliance Mastery',
-                        icon: '👑',
-                        domain: 'compliance',
-                        subtitle: 'Achieving mastery over governance and compliance',
-                        story: `Congratulations, ${this.currentUser.name}! You've journeyed through the realms of security, architecture, and quality. Now comes the culmination of your story - achieving true compliance mastery.
-
-**The Master\'s Reflection:**
-
-Your ${this.currentAsset?.name || 'system'} has evolved from a simple digital asset into a well-governed, secure, and quality-driven solution. You've not just followed requirements - you've woven them into a story of continuous improvement.
-
-**The Compliance Crown:**
-- 🛡️ **Security Mastery**: Your defenses are strong and vigilant
-- 🏗️ **Architecture Excellence**: Your foundations will support future growth
-- ✨ **Quality Commitment**: Your processes ensure consistent excellence
-
-**The Never-Ending Story:**
-But remember - this isn't the end of your story. It's graduation to a new level of responsibility. Each new project, each new challenge, each new requirement is another chapter waiting to be written.
-
-**Your Legacy:**
-The choices you've made, the requirements you've implemented, and the standards you've upheld become part of the larger story of digital transformation and governance excellence.
-
-Ready to start a new story?`,
-                        nextChapters: ['beginning'],
-                        requirements: [],
-                        progress: 100
-                    }
-                };
-            }
-
-            initializeTimeline() {
-                return [
-                    { id: 'beginning', title: 'Quest Begins', icon: '🏁', position: 0, completed: false },
-                    { id: 'security-awakening', title: 'Security', icon: '🛡️', position: 25, completed: false },
-                    { id: 'architecture-foundation', title: 'Architecture', icon: '🏗️', position: 50, completed: false },
-                    { id: 'quality-pursuit', title: 'Quality', icon: '✨', position: 75, completed: false },
-                    { id: 'compliance-mastery', title: 'Mastery', icon: '👑', position: 100, completed: false }
-                ];
-            }
-
-            renderStoryTimeline() {
-                const container = document.getElementById('story-timeline');
-                container.innerHTML = this.timelineNodes.map(node => `
-                    <div class="story-node relative cursor-pointer ${node.id === this.currentChapter ? 'active' : ''}"
-                         onclick="window.storyteller.navigateToChapter('${node.id}')"
-                         style="left: ${node.position}%">
-                        <div class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center mb-2 ${
-                            node.completed ? 'ring-4 ring-green-400' : 
-                            node.id === this.currentChapter ? 'ring-4 ring-blue-400' : 'ring-2 ring-white'
-                        }">
-                            <span class="text-lg">${node.icon}</span>
+                return `
+                    <div class="journey-step flex items-center p-3 rounded-lg cursor-pointer transition-all ${
+                        isCurrent ? 'bg-blue-50 border-l-4 border-blue-500 active' : 
+                        isCompleted ? 'bg-green-50 border-l-4 border-green-500 completed' : 
+                        'bg-gray-50 border-l-4 border-gray-300'
+                    }" onclick="${!isLocked ? `jumpToChapter(${index})` : ''}">
+                        <div class="flex-shrink-0 mr-3">
+                            ${isCompleted ? '✅' : isCurrent ? '📖' : '🔒'}
                         </div>
-                        <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-                            <div class="text-xs font-medium text-white whitespace-nowrap">${node.title}</div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-medium text-gray-900 truncate">${chapter.title}</h4>
+                            <p class="text-xs text-gray-600 truncate">${chapter.description}</p>
                         </div>
-                    </div>
-                `).join('');
-            }
-
-            renderStoryChapters() {
-                const container = document.getElementById('story-chapters');
-                container.innerHTML = Object.values(this.storyChapters).map(chapter => `
-                    <div class="chapter-card p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all ${chapter.domain} ${
-                        chapter.id === this.currentChapter ? 'bg-blue-50 border-blue-300' : ''
-                    }" onclick="window.storyteller.navigateToChapter('${chapter.id}')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <span class="text-xl">${chapter.icon}</span>
-                                <div>
-                                    <h4 class="text-sm font-semibold text-gray-900">${chapter.title}</h4>
-                                    <p class="text-xs text-gray-600">${chapter.subtitle}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-xs text-gray-600">${chapter.progress}%</div>
-                                <div class="w-8 bg-gray-200 rounded-full h-1 mt-1">
-                                    <div class="bg-blue-500 rounded-full h-1 transition-all duration-500" style="width: ${chapter.progress}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            loadChapter(chapterId) {
-                const chapter = this.storyChapters[chapterId];
-                if (!chapter) return;
-
-                this.currentChapter = chapterId;
-                
-                // Update UI elements
-                document.getElementById('chapter-icon').textContent = chapter.icon;
-                document.getElementById('chapter-title').textContent = chapter.title;
-                document.getElementById('chapter-subtitle').textContent = chapter.subtitle;
-                document.getElementById('chapter-progress').textContent = `${chapter.progress}%`;
-                
-                // Update story content with animation
-                const contentContainer = document.getElementById('story-content');
-                contentContainer.style.opacity = '0';
-                
-                setTimeout(() => {
-                    contentContainer.innerHTML = this.formatStoryContent(chapter.story);
-                    contentContainer.style.opacity = '1';
-                }, 300);
-
-                // Update story actions
-                this.updateStoryActions(chapter);
-                
-                // Update progress
-                this.storyProgress = chapter.progress;
-                this.updateStoryProgress();
-                
-                // Re-render timeline and chapters
-                this.renderStoryTimeline();
-                this.renderStoryChapters();
-                
-                // Update related content
-                this.generateConnectedStories();
-                this.updateJourneyMap();
-                
-                trackNavigation(`journey-storyteller/${chapterId}`);
-                trackInteraction('story_chapter_load', { chapter: chapterId, progress: chapter.progress });
-            }
-
-            formatStoryContent(storyText) {
-                // Convert markdown-like formatting to HTML
-                return storyText
-                    .split('\n\n')
-                    .map(paragraph => {
-                        if (paragraph.startsWith('**') && paragraph.endsWith(':**')) {
-                            return `<h4 class="text-lg font-semibold text-gray-900 mb-3 mt-6">${paragraph.slice(2, -3)}</h4>`;
-                        } else if (paragraph.startsWith('*') && paragraph.endsWith('*') && !paragraph.includes('\n')) {
-                            return `<p class="text-sm font-medium text-blue-700 mb-2 italic">${paragraph.slice(1, -1)}</p>`;
-                        } else if (paragraph.includes('- 🛡️') || paragraph.includes('- 🏗️') || paragraph.includes('- ✨')) {
-                            const items = paragraph.split('\n').filter(line => line.trim().startsWith('-'));
-                            return `<ul class="space-y-2 mb-4">${items.map(item => 
-                                `<li class="flex items-start space-x-2">
-                                    <span class="text-sm text-gray-700">${item.trim().substring(1)}</span>
-                                </li>`
-                            ).join('')}</ul>`;
-                        } else {
-                            return `<p class="text-sm text-gray-700 mb-4 leading-relaxed">${paragraph}</p>`;
-                        }
-                    })
-                    .join('');
-            }
-
-            updateStoryActions(chapter) {
-                const container = document.getElementById('story-actions');
-                
-                if (chapter.nextChapters && chapter.nextChapters.length > 0) {
-                    container.innerHTML = `
-                        <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all font-medium"
-                                onclick="window.storyteller.showChapterChoices('${chapter.id}')">
-                            Continue Story →
-                        </button>
-                        ${chapter.requirements.length > 0 ? `
-                            <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-all font-medium"
-                                    onclick="window.storyteller.exploreRequirements('${chapter.id}')">
-                                Explore Requirements
-                            </button>
-                        ` : ''}
-                    `;
-                } else {
-                    container.innerHTML = `
-                        <button class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all font-medium"
-                                onclick="window.storyteller.navigateToChapter('beginning')">
-                            Start New Journey
-                        </button>
-                    `;
-                }
-            }
-
-            showChapterChoices(currentChapterId) {
-                const chapter = this.storyChapters[currentChapterId];
-                const choices = chapter.nextChapters.map(id => this.storyChapters[id]);
-                
-                const choiceHtml = `
-                    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div class="bg-white rounded-xl p-6 max-w-md mx-4">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Choose Your Next Chapter</h3>
-                            <div class="space-y-3">
-                                ${choices.map(choice => `
-                                    <button class="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all"
-                                            onclick="window.storyteller.navigateToChapter('${choice.id}'); this.closest('.fixed').remove();">
-                                        <div class="flex items-center space-x-3">
-                                            <span class="text-xl">${choice.icon}</span>
-                                            <div>
-                                                <div class="font-medium text-gray-900">${choice.title}</div>
-                                                <div class="text-xs text-gray-600">${choice.subtitle}</div>
-                                            </div>
-                                        </div>
-                                    </button>
-                                `).join('')}
-                            </div>
-                            <button class="mt-4 w-full text-sm text-gray-600 hover:text-gray-800"
-                                    onclick="this.closest('.fixed').remove();">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.insertAdjacentHTML('beforeend', choiceHtml);
-            }
-
-            exploreRequirements(chapterId) {
-                const chapter = this.storyChapters[chapterId];
-                
-                const requirementHtml = `
-                    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div class="bg-white rounded-xl p-6 max-w-2xl w-full max-h-96 overflow-y-auto">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900">Requirements in This Chapter</h3>
-                                <button onclick="this.closest('.fixed').remove();" class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="space-y-3">
-                                ${chapter.requirements.map(req => RequirementCard.render(req, req.relevanceScore, true)).join('')}
+                        <div class="flex-shrink-0 ml-2">
+                            <div class="w-8 h-8">
+                                <svg class="progress-ring" width="32" height="32">
+                                    <circle cx="16" cy="16" r="14" stroke="#e5e7eb" stroke-width="2" fill="transparent"/>
+                                    <circle cx="16" cy="16" r="14" stroke="${isCurrent ? '#3b82f6' : isCompleted ? '#10b981' : '#e5e7eb'}" 
+                                            stroke-width="2" fill="transparent"
+                                            stroke-dasharray="87.96" 
+                                            stroke-dashoffset="${87.96 - (87.96 * (isCompleted ? 100 : isCurrent ? chapter.progress : 0) / 100)}"/>
+                                </svg>
                             </div>
                         </div>
                     </div>
                 `;
-                
-                document.body.insertAdjacentHTML('beforeend', requirementHtml);
-            }
+            }).join('');
+        }
 
-            generateConnectedStories() {
-                const currentChapter = this.storyChapters[this.currentChapter];
-                const requirements = getRequirementsForAsset(this.currentAsset?.id || 'asset-1');
-                
-                const stories = requirements.slice(0, 3).map(req => ({
-                    title: `The Tale of ${req.title}`,
-                    description: this.generateRequirementStory(req),
-                    domain: req.domain,
-                    requirement: req
-                }));
-
-                const container = document.getElementById('connected-stories');
-                container.innerHTML = stories.map(story => `
-                    <div class="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
-                        <div class="flex items-start space-x-3">
-                            <span class="w-2 h-2 rounded-full mt-2" style="background-color: ${this.getDomainColor(story.domain)}"></span>
-                            <div class="flex-1">
-                                <h5 class="text-sm font-semibold text-gray-900 mb-1">${story.title}</h5>
-                                <p class="text-xs text-gray-600 line-clamp-2">${story.description}</p>
-                                <div class="mt-2 flex items-center justify-between">
-                                    <span class="text-xs text-gray-500 capitalize">${story.domain}</span>
-                                    <button class="text-xs text-blue-600 hover:text-blue-800">Read Story →</button>
-                                </div>
-                            </div>
-                        </div>
+        function updateStoryContext() {
+            const chapter = storyChapters[currentChapter];
+            const contextContainer = document.getElementById('story-context');
+            
+            contextContainer.innerHTML = `
+                <div class="space-y-4">
+                    <div class="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                        <h4 class="font-medium text-gray-900 mb-2">Current Setting</h4>
+                        <p class="text-sm text-gray-700">Payment Gateway API - Production Environment</p>
                     </div>
-                `).join('');
-            }
-
-            generateRequirementStory(requirement) {
-                const stories = {
-                    'sec-001': 'In a world where digital identities are precious, this guardian ensures that only the truly verified may pass through the gates of your system.',
-                    'sec-002': 'Like an ancient vault protecting royal treasures, this requirement wraps your data in layers of mystical protection.',
-                    'sec-003': 'Standing watch like a vigilant sentry, this guardian prevents overwhelming sieges while welcoming honest travelers.',
-                    'arch-001': 'A symphony of independent services, each playing their part in perfect harmony to create something greater than the sum of their parts.',
-                    'arch-002': 'The nervous system of your digital realm, carrying vital messages that keep all components connected and responsive.',
-                    'arch-003': 'A sacred covenant with the future, ensuring your system can grow and adapt to unknown challenges ahead.',
-                    'qa-001': 'The safety net woven beneath your code, catching errors before they become epic failures in your digital story.',
-                    'qa-002': 'The wise observer that reads the heartbeat of your system, understanding its health through the stories told by metrics.',
-                    'qa-003': 'Checkpoints on your development journey, ensuring every change adds to your story rather than detracting from it.'
-                };
-                
-                return stories[requirement.id] || `This requirement plays a crucial role in the larger story of ${requirement.domain} excellence, ensuring your system remains secure, reliable, and well-architected.`;
-            }
-
-            updateStoryContext() {
-                const container = document.getElementById('story-context');
-                if (!this.currentAsset) {
-                    container.innerHTML = '<div class="text-gray-500 text-sm">Select an asset to begin your story</div>';
-                    return;
-                }
-
-                const storyIntro = this.generateAssetStory(this.currentAsset);
-                
-                container.innerHTML = `
-                    <div class="space-y-3">
-                        <div class="flex items-center space-x-3">
-                            <span class="text-2xl">${this.getAssetIcon(this.currentAsset.type)}</span>
-                            <div>
-                                <h4 class="font-semibold text-gray-900">${this.currentAsset.name}</h4>
-                                <p class="text-sm text-gray-600">${this.currentAsset.type} • ${this.currentAsset.domain}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="p-3 bg-gray-50 rounded-lg">
-                            <p class="text-sm text-gray-700 italic">${storyIntro}</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                                <span class="text-gray-600">Compliance Score:</span>
-                                <span class="font-medium ml-1">${this.currentAsset.complianceScore}%</span>
-                            </div>
-                            <div>
-                                <span class="text-gray-600">Last Chapter:</span>
-                                <span class="font-medium ml-1">${this.currentAsset.lastAssessed}</span>
-                            </div>
-                        </div>
+                    
+                    <div class="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg">
+                        <h4 class="font-medium text-gray-900 mb-2">Your Role</h4>
+                        <p class="text-sm text-gray-700">Software Architect leading compliance implementation</p>
                     </div>
-                `;
-            }
-
-            generateAssetStory(asset) {
-                const stories = {
-                    'api': 'A digital bridge connecting worlds, carrying precious data between realms while standing guard against threats.',
-                    'web-app': 'A window into your digital universe, welcoming visitors while maintaining the highest standards of security and quality.',
-                    'mobile-app': 'A trusted companion that travels with users everywhere, requiring careful protection and flawless performance.',
-                    'platform': 'The foundation upon which digital empires are built, requiring architectural wisdom and unwavering reliability.'
-                };
-                
-                return stories[asset.type] || 'A unique digital entity with its own story of growth, challenges, and triumphs in the governance landscape.';
-            }
-
-            updateJourneyMap() {
-                const container = document.getElementById('journey-map');
-                const currentChapterIndex = Object.keys(this.storyChapters).indexOf(this.currentChapter);
-                const totalChapters = Object.keys(this.storyChapters).length;
-                
-                container.innerHTML = `
-                    <div class="space-y-3">
-                        <div class="text-sm font-medium text-gray-800 mb-3">Your Journey Progress</div>
-                        
-                        <div class="space-y-2">
-                            ${Object.values(this.storyChapters).map((chapter, index) => `
-                                <div class="timeline-item relative pl-10 pb-4">
-                                    <div class="absolute left-0 top-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                                        index <= currentChapterIndex ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
-                                    }">
-                                        <span class="text-sm">${chapter.icon}</span>
-                                    </div>
-                                    <div class="text-sm">
-                                        <div class="font-medium ${index === currentChapterIndex ? 'text-blue-900' : 'text-gray-700'}">${chapter.title}</div>
-                                        <div class="text-xs text-gray-500">${chapter.progress}% complete</div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        
-                        <div class="pt-3 border-t border-gray-200">
-                            <div class="text-xs text-gray-600">
-                                Overall Progress: <span class="font-medium">${Math.round(this.storyProgress)}%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                <div class="story-progress bg-purple-500 rounded-full h-2" style="width: ${this.storyProgress}%"></div>
-                            </div>
-                        </div>
+                    
+                    <div class="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg">
+                        <h4 class="font-medium text-gray-900 mb-2">Current Objective</h4>
+                        <p class="text-sm text-gray-700">${chapter.description}</p>
                     </div>
-                `;
-            }
+                </div>
+            `;
+        }
 
-            updateStoryProgress() {
-                const progressText = document.getElementById('story-progress-text');
-                const progressMessages = {
-                    0: 'Beginning your journey...',
-                    33: 'Security foundations laid',
-                    66: 'Architecture taking shape',
-                    90: 'Quality standards achieved',
-                    100: 'Compliance mastery attained!'
-                };
-                
-                progressText.textContent = progressMessages[this.storyProgress] || `${this.storyProgress}% complete`;
-            }
+        function updateConnectedStories() {
+            const container = document.getElementById('connected-stories');
+            const currentChapterId = storyChapters[currentChapter].id;
+            
+            const relevantStories = connectedStories.filter(story => 
+                storyChapters[currentChapter].connections.includes(story.connection.split('-')[0] + '-quest') ||
+                storyChapters[currentChapter].connections.includes(story.connection.split('-')[0] + '-saga')
+            );
 
-            updateStoryInsights() {
-                const insights = [
-                    {
-                        icon: '📈',
-                        title: 'Story Momentum',
-                        description: `You've completed ${this.completedChapters.length} chapters and are building strong compliance narrative.`
-                    },
-                    {
-                        icon: '🎯',
-                        title: 'Next Milestone',
-                        description: 'Focus on completing security requirements to unlock the next chapter of your story.'
-                    },
-                    {
-                        icon: '🔮',
-                        title: 'Story Prediction',
-                        description: 'Based on your progress, you\'re on track to achieve compliance mastery within 2 weeks.'
-                    }
-                ];
-
-                const container = document.getElementById('story-insights');
-                container.innerHTML = insights.map(insight => `
-                    <div class="p-3 border border-gray-200 rounded-lg">
-                        <div class="flex items-start space-x-3">
-                            <span class="text-lg">${insight.icon}</span>
-                            <div>
-                                <h5 class="text-sm font-semibold text-gray-900 mb-1">${insight.title}</h5>
-                                <p class="text-xs text-gray-600">${insight.description}</p>
-                            </div>
-                        </div>
+            container.innerHTML = relevantStories.map(story => `
+                <div class="connected-story p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-all"
+                     onclick="exploreConnectedStory('${story.connection}')">
+                    <div class="flex items-start justify-between mb-2">
+                        <h4 class="text-sm font-medium text-gray-900">${story.title}</h4>
+                        <span class="text-xs px-2 py-1 rounded-full ${
+                            story.relevance === 'high' ? 'bg-red-100 text-red-700' : 
+                            story.relevance === 'medium' ? 'bg-yellow-100 text-yellow-700' : 
+                            'bg-green-100 text-green-700'
+                        }">${story.relevance}</span>
                     </div>
-                `).join('');
-            }
+                    <p class="text-xs text-gray-600">${story.description}</p>
+                    <div class="connection-line mt-2 rounded-full"></div>
+                </div>
+            `).join('');
 
-            navigateToChapter(chapterId) {
-                if (chapterId !== this.currentChapter) {
-                    this.loadChapter(chapterId);
-                    this.updateStoryInsights();
-                    Toast.show(`Navigated to: ${this.storyChapters[chapterId].title}`, 'info');
-                }
-            }
-
-            handleAssetChange(asset) {
-                this.currentAsset = asset;
-                this.updateStoryContext();
-                this.generateConnectedStories();
-                trackNavigation(`journey-storyteller/asset/${asset.id}`);
-                
-                // Update story content to reflect new asset
-                const currentChapter = this.storyChapters[this.currentChapter];
-                if (currentChapter) {
-                    this.loadChapter(this.currentChapter);
-                }
-            }
-
-            handleRoleChange(newRole) {
-                this.currentUser = mockUsers[newRole];
-                trackInteraction('story_role_change', { role: newRole });
-                
-                const assets = getAssetsByUser(newRole);
-                this.currentAsset = assets[0];
-                
-                // Update components
-                this.setupComponents();
-                this.updateStoryContext();
-                this.generateConnectedStories();
-                
-                // Refresh current chapter with new context
-                this.loadChapter(this.currentChapter);
-                
-                Toast.show(`Story adapted for ${newRole} perspective`, 'success');
-            }
-
-            startStorytellingAnimation() {
-                // Add subtle animations to enhance the storytelling experience
-                const observerOptions = {
-                    threshold: 0.1,
-                    rootMargin: '0px 0px -50px 0px'
-                };
-
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('visible');
-                        }
-                    });
-                }, observerOptions);
-
-                // Observe story chapters for animation
-                document.querySelectorAll('.story-chapter').forEach(chapter => {
-                    observer.observe(chapter);
-                });
-            }
-
-            getDomainColor(domain) {
-                const colors = {
-                    security: '#EF4444',
-                    quality: '#10B981',
-                    architecture: '#3B82F6'
-                };
-                return colors[domain] || '#6B7280';
-            }
-
-            getAssetIcon(type) {
-                const icons = {
-                    'api': '🔌',
-                    'web-app': '🌐',
-                    'mobile-app': '📱',
-                    'platform': '🏗️'
-                };
-                return icons[type] || '📦';
+            if (relevantStories.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No connected stories at this point in your journey.</p>';
             }
         }
 
-        // Initialize Journey Storyteller
-        window.storyteller = new JourneyStoryteller();
+        function updateStoryInsights() {
+            const chapter = storyChapters[currentChapter];
+            const container = document.getElementById('story-insights');
+            
+            container.innerHTML = chapter.insights.map(insight => `
+                <div class="insight-card p-3 rounded-lg">
+                    <div class="flex items-start">
+                        <span class="text-lg mr-2">💡</span>
+                        <p class="text-sm text-gray-800">${insight}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-        // Analytics Dashboard
-        const analyticsContainer = document.getElementById('analytics-dashboard');
-        analyticsContainer.innerHTML = AnalyticsDashboard.render && 
-            AnalyticsDashboard.render(navigationAnalytics) || '';
+        function updateAchievements() {
+            const container = document.getElementById('achievements');
+            const achievements = [
+                { title: 'Story Beginner', description: 'Started your compliance journey', unlocked: currentChapter >= 0 },
+                { title: 'Security Champion', description: 'Completed security requirements', unlocked: currentChapter >= 1 },
+                { title: 'Performance Master', description: 'Achieved performance goals', unlocked: currentChapter >= 2 },
+                { title: 'Compliance Hero', description: 'Reached full compliance', unlocked: currentChapter >= 3 }
+            ];
+
+            container.innerHTML = achievements.map(achievement => `
+                <div class="flex items-center p-3 rounded-lg ${achievement.unlocked ? 'bg-green-50' : 'bg-gray-50'}">
+                    <span class="text-2xl mr-3">${achievement.unlocked ? '🏆' : '🔒'}</span>
+                    <div>
+                        <h4 class="text-sm font-medium ${achievement.unlocked ? 'text-green-900' : 'text-gray-500'}">${achievement.title}</h4>
+                        <p class="text-xs ${achievement.unlocked ? 'text-green-700' : 'text-gray-400'}">${achievement.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startJourneyVisualization() {
+            const container = document.getElementById('journey-visualization');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    ${storyChapters.map((chapter, index) => {
+                        const isCompleted = index < currentChapter;
+                        const isCurrent = index === currentChapter;
+                        
+                        return `
+                            <div class="journey-step flex items-center space-x-4 p-3 rounded-lg transition-all ${
+                                isCurrent ? 'bg-blue-50 border-l-4 border-blue-500' :
+                                isCompleted ? 'bg-green-50 border-l-4 border-green-500' :
+                                'bg-gray-50 border-l-4 border-gray-300'
+                            }">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center border-2 flex-shrink-0 ${
+                                    isCompleted ? 'bg-green-500 border-green-500 text-white' :
+                                    isCurrent ? 'bg-blue-500 border-blue-500 text-white' :
+                                    'bg-gray-200 border-gray-300 text-gray-500'
+                                }">
+                                    ${isCompleted ? '✓' : index + 1}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-medium ${
+                                        isCurrent ? 'text-blue-900' :
+                                        isCompleted ? 'text-green-900' :
+                                        'text-gray-500'
+                                    }">${chapter.title}</h4>
+                                    <p class="text-xs ${
+                                        isCurrent ? 'text-blue-700' :
+                                        isCompleted ? 'text-green-700' :
+                                        'text-gray-400'
+                                    }">${chapter.description}</p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <div class="text-xs font-medium ${
+                                        isCompleted ? 'text-green-600' :
+                                        isCurrent ? 'text-blue-600' :
+                                        'text-gray-400'
+                                    }">${
+                                        isCompleted ? '100%' :
+                                        isCurrent ? chapter.progress + '%' :
+                                        '0%'
+                                    }</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function makeStoryChoice(action, choiceIndex) {
+            userChoices.push({ chapter: currentChapter, choice: action, index: choiceIndex });
+            
+            // Simulate story progression based on choice
+            switch (action) {
+                case 'security-path':
+                    if (currentChapter === 0) {
+                        currentChapter = 1;
+                    }
+                    break;
+                case 'performance-path':
+                    if (currentChapter === 0) {
+                        currentChapter = 2;
+                    }
+                    break;
+                case 'overview-path':
+                    showNotification('Reviewing all requirements gives you a strategic advantage!');
+                    setTimeout(() => {
+                        currentChapter = 1;
+                        progressStory();
+                    }, 2000);
+                    return;
+                case 'auth-trial':
+                case 'encryption-path':
+                case 'rate-limit-path':
+                    if (currentChapter === 1) {
+                        currentChapter = 2;
+                    }
+                    break;
+                case 'response-optimization':
+                case 'throughput-scaling':
+                case 'monitoring-setup':
+                    if (currentChapter === 2) {
+                        currentChapter = 3;
+                    }
+                    break;
+                case 'new-journey':
+                case 'share-story':
+                case 'mentor-mode':
+                    showNotification('Your compliance story continues in new adventures!');
+                    return;
+            }
+            
+            progressStory();
+        }
+
+        function progressStory() {
+            if (currentChapter < storyChapters.length) {
+                updateChapterIndicator();
+                renderCurrentChapter();
+                populateStoryChapters();
+                updateStoryContext();
+                updateConnectedStories();
+                updateStoryInsights();
+                updateAchievements();
+                startJourneyVisualization();
+                
+                showNotification(`Chapter unlocked: ${storyChapters[currentChapter].title}`);
+            }
+        }
+
+        function jumpToChapter(chapterIndex) {
+            if (chapterIndex <= currentChapter) {
+                const oldChapter = currentChapter;
+                currentChapter = chapterIndex;
+                progressStory();
+                showNotification(`Revisiting: ${storyChapters[chapterIndex].title}`);
+            }
+        }
+
+        function exploreConnectedStory(storyId) {
+            showNotification(`Exploring connected story: ${storyId.replace('-', ' ')}`);
+        }
+
+        function updateChapterIndicator() {
+            const chapter = storyChapters[currentChapter];
+            document.getElementById('chapter-progress').textContent = chapter.title;
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 bg-purple-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.remove('translate-x-full'), 10);
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
     </script>
 </body>
 </html>

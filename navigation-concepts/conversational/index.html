@@ -54,7 +54,11 @@
                         <span class="text-sm text-purple-700 font-medium">Voice Mode</span>
                     </button>
                     <!-- Role Switcher -->
-                    <div id="role-selector"></div>
+                    <select id="role-selector" class="text-sm border border-gray-300 rounded px-3 py-2">
+                        <option value="architect">Architect</option>
+                        <option value="developer">Developer</option>
+                        <option value="manager">Manager</option>
+                    </select>
                     <!-- User Info -->
                     <div class="flex items-center space-x-2">
                         <div class="w-8 h-8 user-avatar rounded-full flex items-center justify-center">
@@ -75,14 +79,53 @@
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     
                     <div class="space-y-3" id="quick-actions">
-                        <!-- Quick actions will be populated here -->
+                        <div class="quick-action p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all" onclick="quickAction('find-requirements')">
+                            <div class="flex items-center mb-2">
+                                <span class="text-lg mr-2">🔍</span>
+                                <span class="text-sm font-medium text-gray-800">Find Requirements</span>
+                            </div>
+                            <p class="text-xs text-gray-600">Search for specific requirements</p>
+                        </div>
+                        
+                        <div class="quick-action p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all" onclick="quickAction('start-assessment')">
+                            <div class="flex items-center mb-2">
+                                <span class="text-lg mr-2">📋</span>
+                                <span class="text-sm font-medium text-gray-800">Start Assessment</span>
+                            </div>
+                            <p class="text-xs text-gray-600">Begin compliance assessment</p>
+                        </div>
+                        
+                        <div class="quick-action p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all" onclick="quickAction('view-dashboard')">
+                            <div class="flex items-center mb-2">
+                                <span class="text-lg mr-2">📊</span>
+                                <span class="text-sm font-medium text-gray-800">View Dashboard</span>
+                            </div>
+                            <p class="text-xs text-gray-600">See compliance overview</p>
+                        </div>
+                        
+                        <div class="quick-action p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all" onclick="quickAction('switch-asset')">
+                            <div class="flex items-center mb-2">
+                                <span class="text-lg mr-2">🎯</span>
+                                <span class="text-sm font-medium text-gray-800">Switch Asset</span>
+                            </div>
+                            <p class="text-xs text-gray-600">Change current asset context</p>
+                        </div>
                     </div>
 
                     <!-- Asset Context -->
                     <div class="mt-6">
                         <h4 class="text-md font-semibold text-gray-800 mb-3">Current Context</h4>
                         <div id="current-context" class="text-sm text-gray-600">
-                            <!-- Context will be updated here -->
+                            <div class="p-3 border border-gray-200 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <span class="text-lg mr-2">🔌</span>
+                                    <span class="font-medium text-gray-900">Payment API Gateway</span>
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                    API • Security<br>
+                                    Compliance: 78%
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -91,7 +134,24 @@
                 <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Conversation Starters</h3>
                     <div class="space-y-2" id="conversation-starters">
-                        <!-- Starters will be populated here -->
+                        <button class="w-full text-left text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded transition-all" onclick="sendMessage('What security requirements apply to my API?')">
+                            "What security requirements apply to my API?"
+                        </button>
+                        <button class="w-full text-left text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded transition-all" onclick="sendMessage('How do I start a compliance assessment?')">
+                            "How do I start a compliance assessment?"
+                        </button>
+                        <button class="w-full text-left text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded transition-all" onclick="sendMessage('Show me high-priority requirements')">
+                            "Show me high-priority requirements"
+                        </button>
+                        <button class="w-full text-left text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded transition-all" onclick="sendMessage('What is my current compliance score?')">
+                            "What's my current compliance score?"
+                        </button>
+                        <button class="w-full text-left text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded transition-all" onclick="sendMessage('Help me understand risk levels')">
+                            "Help me understand risk levels"
+                        </button>
+                        <button class="w-full text-left text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded transition-all" onclick="sendMessage('Which assets need attention?')">
+                            "Which assets need attention?"
+                        </button>
                     </div>
                 </div>
             </div>
@@ -111,7 +171,7 @@
                                     <p class="text-sm text-green-600">● Online and ready to help</p>
                                 </div>
                             </div>
-                            <button id="clear-chat" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded">
+                            <button id="clear-chat" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded" onclick="clearChat()">
                                 Clear Chat
                             </button>
                         </div>
@@ -119,7 +179,7 @@
 
                     <!-- Chat Messages -->
                     <div class="flex-1 p-6 overflow-y-auto chat-scroll conversation-flow" id="chat-messages">
-                        <!-- Chat messages will be populated here -->
+                        <!-- Welcome message will be added here -->
                     </div>
 
                     <!-- Chat Input -->
@@ -132,6 +192,7 @@
                                     placeholder="Ask me about requirements, assessments, or compliance..."
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-12"
                                     maxlength="500"
+                                    onkeypress="handleKeyPress(event)"
                                 >
                                 <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
                                     <span id="char-count">0</span>/500
@@ -139,7 +200,8 @@
                             </div>
                             <button 
                                 id="send-button" 
-                                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                                onclick="sendMessageFromInput()"
                             >
                                 Send
                             </button>
@@ -170,7 +232,10 @@
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Smart Context</h3>
                     <div id="smart-context" class="space-y-3">
-                        <!-- Context information will be populated here -->
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <h5 class="font-medium text-gray-900 mb-2">Current Focus</h5>
+                            <p class="text-sm text-gray-700">Payment API Gateway security requirements</p>
+                        </div>
                     </div>
                 </div>
 
@@ -178,249 +243,155 @@
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Session Insights</h3>
                     <div id="conversation-analytics" class="space-y-3 text-sm">
-                        <!-- Analytics will be populated here -->
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Messages:</span>
+                            <span class="font-medium" id="message-count">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">User queries:</span>
+                            <span class="font-medium" id="user-count">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Bot responses:</span>
+                            <span class="font-medium" id="bot-count">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Voice mode:</span>
+                            <span class="font-medium" id="voice-status">Off</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Analytics Footer -->
-    <div id="analytics-dashboard" class="mt-8"></div>
+    <script>
+        // Global state
+        let conversationHistory = [];
+        let currentUser = 'architect';
+        let voiceMode = false;
+        let currentTask = null;
 
-    <!-- Scripts -->
-    <script type="module">
-        import { 
-            mockUsers, mockAssets, mockRequirements, trackInteraction, trackNavigation,
-            getAssetsByUser, getRequirementsForAsset, navigationAnalytics
-        } from '../shared/mockData.js';
-        
-        import { 
-            RoleSelector, RequirementCard, AssetCard, AnalyticsDashboard, Toast
-        } from '../shared/components.js';
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeConversation();
+            updateCharacterCount();
+        });
 
-        // Conversational Assistant State
-        class ConversationalAssistant {
-            constructor() {
-                this.currentUser = mockUsers.architect;
-                this.currentAsset = null;
-                this.conversationHistory = [];
-                this.isTyping = false;
-                this.voiceMode = false;
-                this.currentTask = null;
-                this.contextCache = new Map();
-                this.init();
-            }
+        function initializeConversation() {
+            const welcomeMessage = {
+                type: 'bot',
+                content: `Hello Sarah! I'm your GRC Assistant. I can help you with:
 
-            init() {
-                this.setupComponents();
-                this.setupEventListeners();
-                this.initializeConversation();
-                this.populateQuickActions();
-                this.populateConversationStarters();
-                this.updateAnalytics();
-            }
-
-            setupComponents() {
-                // Role Selector
-                const roleContainer = document.getElementById('role-selector');
-                new RoleSelector(roleContainer, ['architect', 'developer', 'manager'], 
-                    this.currentUser.role, (newRole) => this.handleRoleChange(newRole));
-
-                // Set initial context
-                const assets = getAssetsByUser(this.currentUser.role);
-                this.currentAsset = assets[0];
-                this.updateCurrentContext();
-            }
-
-            setupEventListeners() {
-                // Chat input handling
-                const chatInput = document.getElementById('chat-input');
-                const sendButton = document.getElementById('send-button');
-                const clearButton = document.getElementById('clear-chat');
-                const voiceToggle = document.getElementById('voice-toggle');
-
-                // Character counter
-                chatInput.addEventListener('input', (e) => {
-                    const count = e.target.value.length;
-                    document.getElementById('char-count').textContent = count;
-                });
-
-                // Send message
-                const sendMessage = () => {
-                    const message = chatInput.value.trim();
-                    if (message) {
-                        this.sendMessage(message);
-                        chatInput.value = '';
-                        document.getElementById('char-count').textContent = '0';
-                    }
-                };
-
-                sendButton.addEventListener('click', sendMessage);
-                chatInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
-
-                // Clear chat
-                clearButton.addEventListener('click', () => this.clearConversation());
-
-                // Voice toggle
-                voiceToggle.addEventListener('click', () => this.toggleVoiceMode());
-            }
-
-            initializeConversation() {
-                const welcomeMessage = {
-                    type: 'bot',
-                    content: `Hello ${this.currentUser.name}! I'm your GRC Assistant. I can help you with:
-                    
 • Finding relevant requirements for your assets
 • Starting compliance assessments
 • Understanding risk implications
 • Navigating governance processes
 
 What would you like to work on today?`,
-                    timestamp: new Date(),
-                    suggestions: ['Show security requirements', 'Start an assessment', 'Check compliance status']
-                };
+                timestamp: new Date(),
+                suggestions: ['Show security requirements', 'Start an assessment', 'Check compliance status']
+            };
 
-                this.addMessage(welcomeMessage);
-            }
+            addMessage(welcomeMessage);
+            updateQuickReplies(welcomeMessage.suggestions);
+        }
 
-            populateQuickActions() {
-                const actions = [
-                    {
-                        icon: '🔍',
-                        title: 'Find Requirements',
-                        description: 'Search for specific requirements',
-                        action: () => this.quickAction('find-requirements')
-                    },
-                    {
-                        icon: '📋',
-                        title: 'Start Assessment',
-                        description: 'Begin compliance assessment',
-                        action: () => this.quickAction('start-assessment')
-                    },
-                    {
-                        icon: '📊',
-                        title: 'View Dashboard',
-                        description: 'See compliance overview',
-                        action: () => this.quickAction('view-dashboard')
-                    },
-                    {
-                        icon: '🎯',
-                        title: 'Switch Asset',
-                        description: 'Change current asset context',
-                        action: () => this.quickAction('switch-asset')
-                    }
-                ];
+        function addMessage(message) {
+            conversationHistory.push(message);
+            renderMessages();
+            scrollToBottom();
+            updateAnalytics();
+        }
 
-                const container = document.getElementById('quick-actions');
-                container.innerHTML = actions.map((action, index) => `
-                    <div class="quick-action p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all"
-                         onclick="window.conversationalAssistant.executeQuickAction(${index})">
-                        <div class="flex items-center mb-2">
-                            <span class="text-lg mr-2">${action.icon}</span>
-                            <span class="text-sm font-medium text-gray-800">${action.title}</span>
+        function renderMessages() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = conversationHistory.map(message => {
+                const isBot = message.type === 'bot';
+                const avatarClass = isBot ? 'bot-avatar' : 'user-avatar';
+                const alignClass = isBot ? 'items-start' : 'items-end';
+                const bubbleClass = isBot ? 
+                    'bg-gray-100 text-gray-800 rounded-br-lg rounded-t-lg' : 
+                    'bg-blue-600 text-white rounded-bl-lg rounded-t-lg';
+
+                return `
+                    <div class="chat-bubble flex ${alignClass} mb-4">
+                        ${isBot ? `
+                            <div class="w-8 h-8 ${avatarClass} rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                <span class="text-white text-sm">🤖</span>
+                            </div>
+                        ` : ''}
+                        <div class="max-w-xs lg:max-w-md">
+                            <div class="px-4 py-3 ${bubbleClass}">
+                                <div class="text-sm whitespace-pre-line">${message.content}</div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1 ${isBot ? 'text-left' : 'text-right'}">
+                                ${formatTime(message.timestamp)}
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-600">${action.description}</p>
+                        ${!isBot ? `
+                            <div class="w-8 h-8 ${avatarClass} rounded-full flex items-center justify-center ml-3 flex-shrink-0">
+                                <span class="text-white text-sm">SC</span>
+                            </div>
+                        ` : ''}
                     </div>
-                `).join('');
+                `;
+            }).join('');
+        }
 
-                this.quickActions = actions;
+        function sendMessage(content) {
+            const userMessage = {
+                type: 'user',
+                content: content,
+                timestamp: new Date()
+            };
+            
+            addMessage(userMessage);
+            
+            // Clear input if message came from input field
+            const chatInput = document.getElementById('chat-input');
+            if (chatInput.value === content) {
+                chatInput.value = '';
+                updateCharacterCount();
             }
 
-            populateConversationStarters() {
-                const starters = [
-                    "What security requirements apply to my API?",
-                    "How do I start a compliance assessment?",
-                    "Show me high-priority requirements",
-                    "What's my current compliance score?",
-                    "Help me understand risk levels",
-                    "Which assets need attention?",
-                    "Explain the assessment process",
-                    "Show me quality requirements"
-                ];
+            // Show typing indicator
+            showTypingIndicator();
 
-                const container = document.getElementById('conversation-starters');
-                container.innerHTML = starters.map(starter => `
-                    <button class="w-full text-left text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded transition-all"
-                            onclick="window.conversationalAssistant.sendMessage('${starter.replace(/'/g, "\\'")}')">
-                        "${starter}"
-                    </button>
-                `).join('');
-            }
+            // Generate response after delay
+            setTimeout(() => {
+                hideTypingIndicator();
+                const response = generateResponse(content);
+                addMessage(response);
+                updateQuickReplies(response.suggestions);
+                updateContextInfo(response.context);
+            }, 1000 + Math.random() * 2000);
+        }
 
-            sendMessage(content) {
-                // Add user message
-                const userMessage = {
-                    type: 'user',
-                    content: content,
-                    timestamp: new Date()
-                };
-                
-                this.addMessage(userMessage);
-                trackInteraction('chat_message_sent', { content: content.substring(0, 50) });
-
-                // Process message and generate response
-                setTimeout(() => this.processMessage(content), 500);
-            }
-
-            processMessage(content) {
-                this.showTypingIndicator();
-                
-                setTimeout(() => {
-                    const response = this.generateResponse(content);
-                    this.hideTypingIndicator();
-                    this.addMessage(response);
-                    this.updateQuickReplies(response.suggestions);
-                    this.updateContextInfo(response.context);
-                }, 1000 + Math.random() * 2000);
-            }
-
-            generateResponse(content) {
-                const lowerContent = content.toLowerCase();
-                
-                // Analyze intent and generate appropriate response
-                if (lowerContent.includes('security') || lowerContent.includes('sec-')) {
-                    return this.generateSecurityResponse(content);
-                } else if (lowerContent.includes('assessment') || lowerContent.includes('evaluate')) {
-                    return this.generateAssessmentResponse(content);
-                } else if (lowerContent.includes('requirement') || lowerContent.includes('compliance')) {
-                    return this.generateRequirementResponse(content);
-                } else if (lowerContent.includes('asset') || lowerContent.includes('application')) {
-                    return this.generateAssetResponse(content);
-                } else if (lowerContent.includes('help') || lowerContent.includes('how')) {
-                    return this.generateHelpResponse(content);
-                } else {
-                    return this.generateGenericResponse(content);
-                }
-            }
-
-            generateSecurityResponse(content) {
-                const securityReqs = mockRequirements.security.slice(0, 2);
-                
+        function generateResponse(content) {
+            const lowerContent = content.toLowerCase();
+            
+            if (lowerContent.includes('security') || lowerContent.includes('api')) {
                 return {
                     type: 'bot',
-                    content: `I found ${securityReqs.length} security requirements relevant to your current context:
+                    content: `I found 3 security requirements relevant to your Payment API Gateway:
 
-**${securityReqs[0].title}**
-${securityReqs[0].description}
+**SEC-001: API Authentication**
+All API endpoints must implement OAuth 2.0 or equivalent authentication mechanisms.
 
-**${securityReqs[1].title}**  
-${securityReqs[1].description}
+**SEC-002: Data Encryption**
+Sensitive data must be encrypted in transit using TLS 1.3 and at rest using AES-256.
+
+**SEC-003: Rate Limiting**
+APIs must implement rate limiting to prevent abuse and DDoS attacks.
 
 Would you like me to help you start an assessment for these requirements?`,
                     timestamp: new Date(),
-                    suggestions: ['Start security assessment', 'Show more requirements', 'Explain implementation'],
-                    context: { type: 'security', requirements: securityReqs }
+                    suggestions: ['Start security assessment', 'Show implementation guidance', 'View related requirements'],
+                    context: { type: 'security', focus: 'API requirements' }
                 };
-            }
-
-            generateAssessmentResponse(content) {
-                this.currentTask = {
+            } else if (lowerContent.includes('assessment') || lowerContent.includes('evaluate')) {
+                currentTask = {
                     id: 'assessment-start',
                     title: 'Security Assessment Setup',
                     steps: [
@@ -430,71 +401,48 @@ Would you like me to help you start an assessment for these requirements?`,
                         { title: 'Review Results', completed: false }
                     ]
                 };
-
-                this.updateCurrentTask();
+                updateCurrentTask();
 
                 return {
                     type: 'bot',
-                    content: `Great! I'll help you start a compliance assessment for **${this.currentAsset.name}**.
+                    content: `Great! I'll help you start a compliance assessment for **Payment API Gateway**.
 
-I've identified the most relevant requirements based on your asset type (${this.currentAsset.type}) and domain (${this.currentAsset.domain}).
+I've identified the most relevant requirements based on your asset type (API) and domain (Security).
 
 **Next Steps:**
-1. ✅ Asset selected: ${this.currentAsset.name}
+1. ✅ Asset selected: Payment API Gateway
 2. 🔄 Choose specific requirements to assess
 3. 📝 Complete assessment questions
 4. 📊 Review compliance results
 
 Which domain would you like to focus on first?`,
                     timestamp: new Date(),
-                    suggestions: ['Security requirements', 'Quality requirements', 'Architecture requirements'],
-                    context: { type: 'assessment', asset: this.currentAsset }
+                    suggestions: ['Security requirements', 'Performance requirements', 'Data requirements'],
+                    context: { type: 'assessment', asset: 'Payment API Gateway' }
                 };
-            }
-
-            generateRequirementResponse(content) {
-                const allReqs = [...mockRequirements.security, ...mockRequirements.architecture, ...mockRequirements.quality];
-                const relevantReqs = allReqs.filter(req => 
-                    req.applicableTechnologies.includes(this.currentAsset.type) &&
-                    req.applicableDomains.includes(this.currentAsset.domain)
-                ).slice(0, 3);
-
+            } else if (lowerContent.includes('score') || lowerContent.includes('compliance')) {
                 return {
                     type: 'bot',
-                    content: `Based on your ${this.currentAsset.name} (${this.currentAsset.type}), I found ${relevantReqs.length} highly relevant requirements:
+                    content: `Your current compliance status for **Payment API Gateway**:
 
-${relevantReqs.map((req, i) => `**${i + 1}. ${req.title}** (${req.domain})
-${req.description}
-Priority: ${req.priority}`).join('\n\n')}
+📊 **Overall Score: 78%**
 
-Would you like detailed implementation guidance for any of these?`,
+**Breakdown by Domain:**
+• Security: 85% (3 of 4 requirements met)
+• Performance: 75% (6 of 8 requirements met)  
+• Data Management: 70% (7 of 10 requirements met)
+
+**Priority Actions:**
+1. Complete data retention policy documentation
+2. Implement automated performance monitoring
+3. Update API documentation for new endpoints
+
+Would you like me to help you address any of these gaps?`,
                     timestamp: new Date(),
-                    suggestions: ['Implementation guidance', 'Start assessment', 'Show all requirements'],
-                    context: { type: 'requirements', requirements: relevantReqs }
+                    suggestions: ['Focus on data management', 'Improve performance score', 'View detailed breakdown'],
+                    context: { type: 'compliance', score: 78 }
                 };
-            }
-
-            generateAssetResponse(content) {
-                const assets = getAssetsByUser(this.currentUser.role);
-                
-                return {
-                    type: 'bot',
-                    content: `You have access to ${assets.length} assets in your portfolio:
-
-${assets.map((asset, i) => `**${i + 1}. ${asset.name}**
-Type: ${asset.type} | Domain: ${asset.domain}
-Compliance: ${asset.complianceScore}% | Risks: ${Object.values(asset.riskCount).reduce((a, b) => a + b, 0)}`).join('\n\n')}
-
-Current context: **${this.currentAsset.name}**
-
-Which asset would you like to focus on?`,
-                    timestamp: new Date(),
-                    suggestions: assets.slice(0, 3).map(a => `Switch to ${a.name}`),
-                    context: { type: 'assets', assets: assets }
-                };
-            }
-
-            generateHelpResponse(content) {
+            } else if (lowerContent.includes('help') || lowerContent.includes('how')) {
                 return {
                     type: 'bot',
                     content: `I'm here to help! Here's what I can assist you with:
@@ -507,7 +455,7 @@ Which asset would you like to focus on?`,
 **📋 Starting Assessments**  
 • "Start a compliance assessment"
 • "Begin security evaluation"
-• "Help me assess quality requirements"
+• "Help me assess data requirements"
 
 **📊 Getting Insights**
 • "What's my compliance score?"
@@ -524,9 +472,7 @@ Just ask me naturally - I understand conversational language!`,
                     suggestions: ['Show my assets', 'Start assessment', 'Find requirements'],
                     context: { type: 'help' }
                 };
-            }
-
-            generateGenericResponse(content) {
+            } else {
                 return {
                     type: 'bot',
                     content: `I understand you're interested in "${content}". Let me help clarify what you need:
@@ -546,289 +492,220 @@ You can also try these example questions:
                     context: { type: 'clarification' }
                 };
             }
+        }
 
-            addMessage(message) {
-                this.conversationHistory.push(message);
-                this.renderMessages();
-                this.scrollToBottom();
-            }
+        function updateQuickReplies(suggestions) {
+            if (!suggestions) return;
+            
+            const container = document.getElementById('quick-replies');
+            container.innerHTML = suggestions.map(suggestion => `
+                <button class="px-3 py-1 text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded-full transition-all border border-gray-200"
+                        onclick="sendMessage('${suggestion.replace(/'/g, "\\'")}')">
+                    ${suggestion}
+                </button>
+            `).join('');
+        }
 
-            renderMessages() {
-                const container = document.getElementById('chat-messages');
-                container.innerHTML = this.conversationHistory.map(message => {
-                    const isBot = message.type === 'bot';
-                    const avatarClass = isBot ? 'bot-avatar' : 'user-avatar';
-                    const alignClass = isBot ? 'items-start' : 'items-end';
-                    const bubbleClass = isBot ? 
-                        'bg-gray-100 text-gray-800 rounded-br-lg rounded-t-lg' : 
-                        'bg-blue-600 text-white rounded-bl-lg rounded-t-lg';
+        function updateContextInfo(context) {
+            if (!context) return;
+            
+            const container = document.getElementById('smart-context');
+            let contextHtml = '';
 
-                    return `
-                        <div class="chat-bubble flex ${alignClass} mb-4">
-                            ${isBot ? `
-                                <div class="w-8 h-8 ${avatarClass} rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                                    <span class="text-white text-sm">🤖</span>
-                                </div>
-                            ` : ''}
-                            <div class="max-w-xs lg:max-w-md">
-                                <div class="px-4 py-3 ${bubbleClass}">
-                                    <div class="text-sm whitespace-pre-line">${message.content}</div>
-                                </div>
-                                <div class="text-xs text-gray-500 mt-1 ${isBot ? 'text-left' : 'text-right'}">
-                                    ${this.formatTime(message.timestamp)}
-                                </div>
-                            </div>
-                            ${!isBot ? `
-                                <div class="w-8 h-8 ${avatarClass} rounded-full flex items-center justify-center ml-3 flex-shrink-0">
-                                    <span class="text-white text-sm">${this.currentUser.name[0]}</span>
-                                </div>
-                            ` : ''}
+            switch (context.type) {
+                case 'security':
+                    contextHtml = `
+                        <div class="p-3 bg-red-50 rounded-lg">
+                            <h5 class="font-medium text-red-900 mb-2">Security Context</h5>
+                            <p class="text-sm text-red-700">${context.focus || 'Security requirements identified'}</p>
                         </div>
                     `;
-                }).join('');
-            }
-
-            showTypingIndicator() {
-                const container = document.getElementById('chat-messages');
-                const typingHtml = `
-                    <div id="typing-indicator" class="flex items-start mb-4">
-                        <div class="w-8 h-8 bot-avatar rounded-full flex items-center justify-center mr-3">
-                            <span class="text-white text-sm">🤖</span>
+                    break;
+                case 'assessment':
+                    contextHtml = `
+                        <div class="p-3 bg-blue-50 rounded-lg">
+                            <h5 class="font-medium text-blue-900 mb-2">Assessment Context</h5>
+                            <p class="text-sm text-blue-700">Setting up assessment for ${context.asset}</p>
                         </div>
-                        <div class="bg-gray-100 rounded-br-lg rounded-t-lg px-4 py-3">
-                            <div class="flex space-x-1">
-                                <div class="w-2 h-2 bg-gray-500 rounded-full typing-indicator"></div>
-                                <div class="w-2 h-2 bg-gray-500 rounded-full typing-indicator" style="animation-delay: 0.2s"></div>
-                                <div class="w-2 h-2 bg-gray-500 rounded-full typing-indicator" style="animation-delay: 0.4s"></div>
-                            </div>
+                    `;
+                    break;
+                case 'compliance':
+                    contextHtml = `
+                        <div class="p-3 bg-green-50 rounded-lg">
+                            <h5 class="font-medium text-green-900 mb-2">Compliance Context</h5>
+                            <p class="text-sm text-green-700">Overall score: ${context.score}%</p>
                         </div>
-                    </div>
-                `;
-                
-                container.insertAdjacentHTML('beforeend', typingHtml);
-                this.scrollToBottom();
+                    `;
+                    break;
             }
 
-            hideTypingIndicator() {
-                const indicator = document.getElementById('typing-indicator');
-                if (indicator) indicator.remove();
-            }
+            container.innerHTML = contextHtml;
+        }
 
-            updateQuickReplies(suggestions) {
-                if (!suggestions) return;
-                
-                const container = document.getElementById('quick-replies');
-                container.innerHTML = suggestions.map(suggestion => `
-                    <button class="px-3 py-1 text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded-full transition-all border border-gray-200"
-                            onclick="window.conversationalAssistant.sendMessage('${suggestion.replace(/'/g, "\\'")}')">
-                        ${suggestion}
-                    </button>
-                `).join('');
-            }
-
-            updateContextInfo(context) {
-                if (!context) return;
-                
-                const container = document.getElementById('smart-context');
-                let contextHtml = '';
-
-                switch (context.type) {
-                    case 'security':
-                        contextHtml = `
-                            <div class="p-3 bg-red-50 rounded-lg">
-                                <h5 class="font-medium text-red-900 mb-2">Security Context</h5>
-                                <p class="text-sm text-red-700">${context.requirements.length} security requirements identified</p>
-                            </div>
-                        `;
-                        break;
-                    case 'assessment':
-                        contextHtml = `
-                            <div class="p-3 bg-blue-50 rounded-lg">
-                                <h5 class="font-medium text-blue-900 mb-2">Assessment Context</h5>
-                                <p class="text-sm text-blue-700">Setting up assessment for ${context.asset.name}</p>
-                            </div>
-                        `;
-                        break;
-                    case 'requirements':
-                        contextHtml = `
-                            <div class="p-3 bg-green-50 rounded-lg">
-                                <h5 class="font-medium text-green-900 mb-2">Requirements Context</h5>
-                                <p class="text-sm text-green-700">${context.requirements.length} relevant requirements found</p>
-                            </div>
-                        `;
-                        break;
-                }
-
-                container.innerHTML = contextHtml;
-            }
-
-            updateCurrentContext() {
-                const container = document.getElementById('current-context');
-                container.innerHTML = `
-                    <div class="p-3 border border-gray-200 rounded-lg">
-                        <div class="flex items-center mb-2">
-                            <span class="text-lg mr-2">${this.getAssetIcon(this.currentAsset.type)}</span>
-                            <span class="font-medium text-gray-900">${this.currentAsset.name}</span>
-                        </div>
-                        <div class="text-xs text-gray-600">
-                            ${this.currentAsset.type} • ${this.currentAsset.domain}<br>
-                            Compliance: ${this.currentAsset.complianceScore}%
-                        </div>
-                    </div>
-                `;
-            }
-
-            updateCurrentTask() {
-                if (!this.currentTask) return;
-                
-                const container = document.getElementById('current-task');
-                container.innerHTML = `
-                    <div class="space-y-3">
-                        <h4 class="font-medium text-gray-900">${this.currentTask.title}</h4>
-                        <div class="space-y-2">
-                            ${this.currentTask.steps.map(step => `
-                                <div class="flex items-center text-sm">
-                                    <div class="w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
-                                        step.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
-                                    }">
-                                        ${step.completed ? '✓' : '○'}
-                                    </div>
-                                    <span class="${step.completed ? 'text-green-700' : 'text-gray-600'}">${step.title}</span>
+        function updateCurrentTask() {
+            if (!currentTask) return;
+            
+            const container = document.getElementById('current-task');
+            container.innerHTML = `
+                <div class="space-y-3">
+                    <h4 class="font-medium text-gray-900">${currentTask.title}</h4>
+                    <div class="space-y-2">
+                        ${currentTask.steps.map(step => `
+                            <div class="flex items-center text-sm">
+                                <div class="w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                                    step.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                                }">
+                                    ${step.completed ? '✓' : '○'}
                                 </div>
-                            `).join('')}
-                        </div>
+                                <span class="${step.completed ? 'text-green-700' : 'text-gray-600'}">${step.title}</span>
+                            </div>
+                        `).join('')}
                     </div>
-                `;
+                </div>
+            `;
+        }
+
+        function quickAction(actionType) {
+            let message = '';
+            switch(actionType) {
+                case 'find-requirements':
+                    message = 'Show me requirements for my current asset';
+                    break;
+                case 'start-assessment':
+                    message = 'Start a compliance assessment';
+                    break;
+                case 'view-dashboard':
+                    message = 'Show my compliance dashboard';
+                    break;
+                case 'switch-asset':
+                    message = 'Show me all my assets';
+                    break;
             }
-
-            executeQuickAction(index) {
-                const action = this.quickActions[index];
-                trackInteraction('quick_action', { action: action.title });
-                action.action();
-            }
-
-            quickAction(actionType) {
-                switch(actionType) {
-                    case 'find-requirements':
-                        this.sendMessage('Show me requirements for my current asset');
-                        break;
-                    case 'start-assessment':
-                        this.sendMessage('Start a compliance assessment');
-                        break;
-                    case 'view-dashboard':
-                        this.sendMessage('Show my compliance dashboard');
-                        break;
-                    case 'switch-asset':
-                        this.sendMessage('Show me all my assets');
-                        break;
-                }
-            }
-
-            handleRoleChange(newRole) {
-                this.currentUser = mockUsers[newRole];
-                trackInteraction('conversational_role_change', { role: newRole });
-                
-                const assets = getAssetsByUser(newRole);
-                this.currentAsset = assets[0];
-                this.updateCurrentContext();
-                
-                // Add system message about role change
-                const roleChangeMessage = {
-                    type: 'bot',
-                    content: `I've switched your context to **${newRole}** role. You now have access to ${assets.length} assets. Current focus: **${this.currentAsset.name}**.
-
-How can I help you in your ${newRole} role?`,
-                    timestamp: new Date(),
-                    suggestions: ['Show my assets', 'Find requirements', 'Start assessment']
-                };
-                
-                this.addMessage(roleChangeMessage);
-                Toast.show(`Switched to ${newRole} role`, 'success');
-            }
-
-            clearConversation() {
-                this.conversationHistory = [];
-                this.currentTask = null;
-                this.renderMessages();
-                this.updateCurrentTask();
-                this.initializeConversation();
-                trackInteraction('conversation_cleared', {});
-            }
-
-            toggleVoiceMode() {
-                this.voiceMode = !this.voiceMode;
-                const button = document.getElementById('voice-toggle');
-                
-                if (this.voiceMode) {
-                    button.className = button.className.replace('bg-purple-50', 'bg-purple-100');
-                    Toast.show('Voice mode activated', 'info');
-                } else {
-                    button.className = button.className.replace('bg-purple-100', 'bg-purple-50');
-                    Toast.show('Voice mode deactivated', 'info');
-                }
-                
-                trackInteraction('voice_toggle', { enabled: this.voiceMode });
-            }
-
-            updateAnalytics() {
-                const container = document.getElementById('conversation-analytics');
-                const messageCount = this.conversationHistory.length;
-                const botMessages = this.conversationHistory.filter(m => m.type === 'bot').length;
-                const userMessages = this.conversationHistory.filter(m => m.type === 'user').length;
-
-                container.innerHTML = `
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Messages:</span>
-                        <span class="font-medium">${messageCount}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">User queries:</span>
-                        <span class="font-medium">${userMessages}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Bot responses:</span>
-                        <span class="font-medium">${botMessages}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Voice mode:</span>
-                        <span class="font-medium">${this.voiceMode ? 'On' : 'Off'}</span>
-                    </div>
-                `;
-
-                // Update every few seconds
-                setTimeout(() => this.updateAnalytics(), 3000);
-            }
-
-            scrollToBottom() {
-                const container = document.getElementById('chat-messages');
-                container.scrollTop = container.scrollHeight;
-            }
-
-            formatTime(timestamp) {
-                return timestamp.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-            }
-
-            getAssetIcon(type) {
-                const icons = {
-                    'api': '🔌',
-                    'web-app': '🌐',
-                    'mobile-app': '📱',
-                    'platform': '🏗️'
-                };
-                return icons[type] || '📦';
+            if (message) {
+                sendMessage(message);
             }
         }
 
-        // Initialize Conversational Assistant
-        window.conversationalAssistant = new ConversationalAssistant();
+        function sendMessageFromInput() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (message) {
+                sendMessage(message);
+            }
+        }
 
-        // Analytics Dashboard
-        const analyticsContainer = document.getElementById('analytics-dashboard');
-        analyticsContainer.innerHTML = AnalyticsDashboard.render && 
-            AnalyticsDashboard.render(navigationAnalytics) || '';
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessageFromInput();
+            }
+        }
+
+        function clearChat() {
+            conversationHistory = [];
+            currentTask = null;
+            renderMessages();
+            updateAnalytics();
+            document.getElementById('current-task').innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <span class="text-2xl mb-2 block">💬</span>
+                    <p class="text-sm">Start a conversation to see task progress</p>
+                </div>
+            `;
+            document.getElementById('smart-context').innerHTML = `
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <h5 class="font-medium text-gray-900 mb-2">Current Focus</h5>
+                    <p class="text-sm text-gray-700">Payment API Gateway security requirements</p>
+                </div>
+            `;
+            initializeConversation();
+        }
+
+        function toggleVoiceMode() {
+            voiceMode = !voiceMode;
+            const button = document.getElementById('voice-toggle');
+            const status = document.getElementById('voice-status');
+            
+            if (voiceMode) {
+                button.className = button.className.replace('bg-purple-50', 'bg-purple-100');
+                status.textContent = 'On';
+                showNotification('Voice mode activated', 'info');
+            } else {
+                button.className = button.className.replace('bg-purple-100', 'bg-purple-50');
+                status.textContent = 'Off';
+                showNotification('Voice mode deactivated', 'info');
+            }
+        }
+
+        function updateCharacterCount() {
+            const input = document.getElementById('chat-input');
+            const counter = document.getElementById('char-count');
+            
+            input.addEventListener('input', function() {
+                counter.textContent = input.value.length;
+            });
+        }
+
+        function updateAnalytics() {
+            const messageCount = conversationHistory.length;
+            const botMessages = conversationHistory.filter(m => m.type === 'bot').length;
+            const userMessages = conversationHistory.filter(m => m.type === 'user').length;
+
+            document.getElementById('message-count').textContent = messageCount;
+            document.getElementById('user-count').textContent = userMessages;
+            document.getElementById('bot-count').textContent = botMessages;
+        }
+
+        function showTypingIndicator() {
+            const container = document.getElementById('chat-messages');
+            const typingHtml = `
+                <div id="typing-indicator" class="flex items-start mb-4">
+                    <div class="w-8 h-8 bot-avatar rounded-full flex items-center justify-center mr-3">
+                        <span class="text-white text-sm">🤖</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-br-lg rounded-t-lg px-4 py-3">
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-gray-500 rounded-full typing-indicator"></div>
+                            <div class="w-2 h-2 bg-gray-500 rounded-full typing-indicator" style="animation-delay: 0.2s"></div>
+                            <div class="w-2 h-2 bg-gray-500 rounded-full typing-indicator" style="animation-delay: 0.4s"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', typingHtml);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chat-messages');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function formatTime(timestamp) {
+            return timestamp.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        function showNotification(message, type) {
+            // Simple notification - could be enhanced
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+
+        // Voice toggle event listener
+        document.getElementById('voice-toggle').addEventListener('click', toggleVoiceMode);
+
+        // Role selector event listener  
+        document.getElementById('role-selector').addEventListener('change', function(e) {
+            currentUser = e.target.value;
+            showNotification(`Switched to ${currentUser} role`, 'success');
+        });
     </script>
 </body>
 </html>
