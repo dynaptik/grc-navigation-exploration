@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversational Governance Assistant - GRC Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chat-bubble { animation: slideInChat 0.3s ease-out; }
+        .typing-indicator { animation: typing 1.5s infinite; }
+        .conversation-flow { max-height: 600px; }
+        .quick-action { transition: all 0.2s ease; }
+        .quick-action:hover { transform: scale(1.05); }
+        .voice-animation { animation: voicePulse 2s infinite; }
+        .bot-avatar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .user-avatar { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        
+        @keyframes slideInChat {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes typing {
+            0%, 60% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+        
+        @keyframes voicePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Custom scrollbar for chat */
+        .chat-scroll::-webkit-scrollbar { width: 6px; }
+        .chat-scroll::-webkit-scrollbar-track { background: transparent; }
+        .chat-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Governance Assistant</h1>
+                    <p class="text-sm text-gray-600">Your conversational guide to GRC compliance</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Voice Control Toggle -->
+                    <button id="voice-toggle" class="flex items-center space-x-2 bg-purple-50 hover:bg-purple-100 px-3 py-2 rounded-lg transition-all">
+                        <div class="w-2 h-2 bg-purple-500 rounded-full voice-animation"></div>
+                        <span class="text-sm text-purple-700 font-medium">Voice Mode</span>
+                    </button>
+                    <!-- Role Switcher -->
+                    <div id="role-selector"></div>
+                    <!-- User Info -->
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 user-avatar rounded-full flex items-center justify-center">
+                            <span class="text-sm font-medium text-white">SC</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Sarah Chen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <div class="grid lg:grid-cols-4 gap-8">
+            <!-- Left Panel: Quick Actions -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                    
+                    <div class="space-y-3" id="quick-actions">
+                        <!-- Quick actions will be populated here -->
+                    </div>
+
+                    <!-- Asset Context -->
+                    <div class="mt-6">
+                        <h4 class="text-md font-semibold text-gray-800 mb-3">Current Context</h4>
+                        <div id="current-context" class="text-sm text-gray-600">
+                            <!-- Context will be updated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversation Shortcuts -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Conversation Starters</h3>
+                    <div class="space-y-2" id="conversation-starters">
+                        <!-- Starters will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel: Chat Interface -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-lg h-full flex flex-col">
+                    <!-- Chat Header -->
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bot-avatar rounded-full flex items-center justify-center">
+                                    <span class="text-white text-lg">🤖</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">GRC Assistant</h3>
+                                    <p class="text-sm text-green-600">● Online and ready to help</p>
+                                </div>
+                            </div>
+                            <button id="clear-chat" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded">
+                                Clear Chat
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="flex-1 p-6 overflow-y-auto chat-scroll conversation-flow" id="chat-messages">
+                        <!-- Chat messages will be populated here -->
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="p-6 border-t border-gray-200">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-1 relative">
+                                <input 
+                                    type="text" 
+                                    id="chat-input" 
+                                    placeholder="Ask me about requirements, assessments, or compliance..."
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-12"
+                                    maxlength="500"
+                                >
+                                <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                                    <span id="char-count">0</span>/500
+                                </div>
+                            </div>
+                            <button 
+                                id="send-button" 
+                                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Send
+                            </button>
+                        </div>
+                        
+                        <!-- Quick Reply Suggestions -->
+                        <div class="mt-3 flex flex-wrap gap-2" id="quick-replies">
+                            <!-- Quick replies will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Context & Insights -->
+            <div class="lg:col-span-1">
+                <!-- Current Task Progress -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Current Task</h3>
+                    <div id="current-task">
+                        <div class="text-center py-8 text-gray-500">
+                            <span class="text-2xl mb-2 block">💬</span>
+                            <p class="text-sm">Start a conversation to see task progress</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contextual Information -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Smart Context</h3>
+                    <div id="smart-context" class="space-y-3">
+                        <!-- Context information will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Conversation Analytics -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Session Insights</h3>
+                    <div id="conversation-analytics" class="space-y-3 text-sm">
+                        <!-- Analytics will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Footer -->
+    <div id="analytics-dashboard" class="mt-8"></div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { 
+            mockUsers, mockAssets, mockRequirements, trackInteraction, trackNavigation,
+            getAssetsByUser, getRequirementsForAsset, navigationAnalytics
+        } from '../shared/mockData.js';
+        
+        import { 
+            RoleSelector, RequirementCard, AssetCard, AnalyticsDashboard, Toast
+        } from '../shared/components.js';
+
+        // Conversational Assistant State
+        class ConversationalAssistant {
+            constructor() {
+                this.currentUser = mockUsers.architect;
+                this.currentAsset = null;
+                this.conversationHistory = [];
+                this.isTyping = false;
+                this.voiceMode = false;
+                this.currentTask = null;
+                this.contextCache = new Map();
+                this.init();
+            }
+
+            init() {
+                this.setupComponents();
+                this.setupEventListeners();
+                this.initializeConversation();
+                this.populateQuickActions();
+                this.populateConversationStarters();
+                this.updateAnalytics();
+            }
+
+            setupComponents() {
+                // Role Selector
+                const roleContainer = document.getElementById('role-selector');
+                new RoleSelector(roleContainer, ['architect', 'developer', 'manager'], 
+                    this.currentUser.role, (newRole) => this.handleRoleChange(newRole));
+
+                // Set initial context
+                const assets = getAssetsByUser(this.currentUser.role);
+                this.currentAsset = assets[0];
+                this.updateCurrentContext();
+            }
+
+            setupEventListeners() {
+                // Chat input handling
+                const chatInput = document.getElementById('chat-input');
+                const sendButton = document.getElementById('send-button');
+                const clearButton = document.getElementById('clear-chat');
+                const voiceToggle = document.getElementById('voice-toggle');
+
+                // Character counter
+                chatInput.addEventListener('input', (e) => {
+                    const count = e.target.value.length;
+                    document.getElementById('char-count').textContent = count;
+                });
+
+                // Send message
+                const sendMessage = () => {
+                    const message = chatInput.value.trim();
+                    if (message) {
+                        this.sendMessage(message);
+                        chatInput.value = '';
+                        document.getElementById('char-count').textContent = '0';
+                    }
+                };
+
+                sendButton.addEventListener('click', sendMessage);
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+
+                // Clear chat
+                clearButton.addEventListener('click', () => this.clearConversation());
+
+                // Voice toggle
+                voiceToggle.addEventListener('click', () => this.toggleVoiceMode());
+            }
+
+            initializeConversation() {
+                const welcomeMessage = {
+                    type: 'bot',
+                    content: `Hello ${this.currentUser.name}! I'm your GRC Assistant. I can help you with:
+                    
+• Finding relevant requirements for your assets
+• Starting compliance assessments
+• Understanding risk implications
+• Navigating governance processes
+
+What would you like to work on today?`,
+                    timestamp: new Date(),
+                    suggestions: ['Show security requirements', 'Start an assessment', 'Check compliance status']
+                };
+
+                this.addMessage(welcomeMessage);
+            }
+
+            populateQuickActions() {
+                const actions = [
+                    {
+                        icon: '🔍',
+                        title: 'Find Requirements',
+                        description: 'Search for specific requirements',
+                        action: () => this.quickAction('find-requirements')
+                    },
+                    {
+                        icon: '📋',
+                        title: 'Start Assessment',
+                        description: 'Begin compliance assessment',
+                        action: () => this.quickAction('start-assessment')
+                    },
+                    {
+                        icon: '📊',
+                        title: 'View Dashboard',
+                        description: 'See compliance overview',
+                        action: () => this.quickAction('view-dashboard')
+                    },
+                    {
+                        icon: '🎯',
+                        title: 'Switch Asset',
+                        description: 'Change current asset context',
+                        action: () => this.quickAction('switch-asset')
+                    }
+                ];
+
+                const container = document.getElementById('quick-actions');
+                container.innerHTML = actions.map((action, index) => `
+                    <div class="quick-action p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all"
+                         onclick="window.conversationalAssistant.executeQuickAction(${index})">
+                        <div class="flex items-center mb-2">
+                            <span class="text-lg mr-2">${action.icon}</span>
+                            <span class="text-sm font-medium text-gray-800">${action.title}</span>
+                        </div>
+                        <p class="text-xs text-gray-600">${action.description}</p>
+                    </div>
+                `).join('');
+
+                this.quickActions = actions;
+            }
+
+            populateConversationStarters() {
+                const starters = [
+                    "What security requirements apply to my API?",
+                    "How do I start a compliance assessment?",
+                    "Show me high-priority requirements",
+                    "What's my current compliance score?",
+                    "Help me understand risk levels",
+                    "Which assets need attention?",
+                    "Explain the assessment process",
+                    "Show me quality requirements"
+                ];
+
+                const container = document.getElementById('conversation-starters');
+                container.innerHTML = starters.map(starter => `
+                    <button class="w-full text-left text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-2 rounded transition-all"
+                            onclick="window.conversationalAssistant.sendMessage('${starter.replace(/'/g, "\\'")}')">
+                        "${starter}"
+                    </button>
+                `).join('');
+            }
+
+            sendMessage(content) {
+                // Add user message
+                const userMessage = {
+                    type: 'user',
+                    content: content,
+                    timestamp: new Date()
+                };
+                
+                this.addMessage(userMessage);
+                trackInteraction('chat_message_sent', { content: content.substring(0, 50) });
+
+                // Process message and generate response
+                setTimeout(() => this.processMessage(content), 500);
+            }
+
+            processMessage(content) {
+                this.showTypingIndicator();
+                
+                setTimeout(() => {
+                    const response = this.generateResponse(content);
+                    this.hideTypingIndicator();
+                    this.addMessage(response);
+                    this.updateQuickReplies(response.suggestions);
+                    this.updateContextInfo(response.context);
+                }, 1000 + Math.random() * 2000);
+            }
+
+            generateResponse(content) {
+                const lowerContent = content.toLowerCase();
+                
+                // Analyze intent and generate appropriate response
+                if (lowerContent.includes('security') || lowerContent.includes('sec-')) {
+                    return this.generateSecurityResponse(content);
+                } else if (lowerContent.includes('assessment') || lowerContent.includes('evaluate')) {
+                    return this.generateAssessmentResponse(content);
+                } else if (lowerContent.includes('requirement') || lowerContent.includes('compliance')) {
+                    return this.generateRequirementResponse(content);
+                } else if (lowerContent.includes('asset') || lowerContent.includes('application')) {
+                    return this.generateAssetResponse(content);
+                } else if (lowerContent.includes('help') || lowerContent.includes('how')) {
+                    return this.generateHelpResponse(content);
+                } else {
+                    return this.generateGenericResponse(content);
+                }
+            }
+
+            generateSecurityResponse(content) {
+                const securityReqs = mockRequirements.security.slice(0, 2);
+                
+                return {
+                    type: 'bot',
+                    content: `I found ${securityReqs.length} security requirements relevant to your current context:
+
+**${securityReqs[0].title}**
+${securityReqs[0].description}
+
+**${securityReqs[1].title}**  
+${securityReqs[1].description}
+
+Would you like me to help you start an assessment for these requirements?`,
+                    timestamp: new Date(),
+                    suggestions: ['Start security assessment', 'Show more requirements', 'Explain implementation'],
+                    context: { type: 'security', requirements: securityReqs }
+                };
+            }
+
+            generateAssessmentResponse(content) {
+                this.currentTask = {
+                    id: 'assessment-start',
+                    title: 'Security Assessment Setup',
+                    steps: [
+                        { title: 'Select Asset', completed: true },
+                        { title: 'Choose Requirements', completed: false },
+                        { title: 'Complete Questions', completed: false },
+                        { title: 'Review Results', completed: false }
+                    ]
+                };
+
+                this.updateCurrentTask();
+
+                return {
+                    type: 'bot',
+                    content: `Great! I'll help you start a compliance assessment for **${this.currentAsset.name}**.
+
+I've identified the most relevant requirements based on your asset type (${this.currentAsset.type}) and domain (${this.currentAsset.domain}).
+
+**Next Steps:**
+1. ✅ Asset selected: ${this.currentAsset.name}
+2. 🔄 Choose specific requirements to assess
+3. 📝 Complete assessment questions
+4. 📊 Review compliance results
+
+Which domain would you like to focus on first?`,
+                    timestamp: new Date(),
+                    suggestions: ['Security requirements', 'Quality requirements', 'Architecture requirements'],
+                    context: { type: 'assessment', asset: this.currentAsset }
+                };
+            }
+
+            generateRequirementResponse(content) {
+                const allReqs = [...mockRequirements.security, ...mockRequirements.architecture, ...mockRequirements.quality];
+                const relevantReqs = allReqs.filter(req => 
+                    req.applicableTechnologies.includes(this.currentAsset.type) &&
+                    req.applicableDomains.includes(this.currentAsset.domain)
+                ).slice(0, 3);
+
+                return {
+                    type: 'bot',
+                    content: `Based on your ${this.currentAsset.name} (${this.currentAsset.type}), I found ${relevantReqs.length} highly relevant requirements:
+
+${relevantReqs.map((req, i) => `**${i + 1}. ${req.title}** (${req.domain})
+${req.description}
+Priority: ${req.priority}`).join('\n\n')}
+
+Would you like detailed implementation guidance for any of these?`,
+                    timestamp: new Date(),
+                    suggestions: ['Implementation guidance', 'Start assessment', 'Show all requirements'],
+                    context: { type: 'requirements', requirements: relevantReqs }
+                };
+            }
+
+            generateAssetResponse(content) {
+                const assets = getAssetsByUser(this.currentUser.role);
+                
+                return {
+                    type: 'bot',
+                    content: `You have access to ${assets.length} assets in your portfolio:
+
+${assets.map((asset, i) => `**${i + 1}. ${asset.name}**
+Type: ${asset.type} | Domain: ${asset.domain}
+Compliance: ${asset.complianceScore}% | Risks: ${Object.values(asset.riskCount).reduce((a, b) => a + b, 0)}`).join('\n\n')}
+
+Current context: **${this.currentAsset.name}**
+
+Which asset would you like to focus on?`,
+                    timestamp: new Date(),
+                    suggestions: assets.slice(0, 3).map(a => `Switch to ${a.name}`),
+                    context: { type: 'assets', assets: assets }
+                };
+            }
+
+            generateHelpResponse(content) {
+                return {
+                    type: 'bot',
+                    content: `I'm here to help! Here's what I can assist you with:
+
+**🔍 Finding Information**
+• "Show security requirements for APIs"
+• "What compliance requirements apply to my app?"
+• "Explain risk levels"
+
+**📋 Starting Assessments**  
+• "Start a compliance assessment"
+• "Begin security evaluation"
+• "Help me assess quality requirements"
+
+**📊 Getting Insights**
+• "What's my compliance score?"
+• "Show asset dashboard"
+• "Which requirements are most important?"
+
+**⚙️ Managing Context**
+• "Switch to [asset name]"
+• "Change my role to developer"
+• "Show my assigned assets"
+
+Just ask me naturally - I understand conversational language!`,
+                    timestamp: new Date(),
+                    suggestions: ['Show my assets', 'Start assessment', 'Find requirements'],
+                    context: { type: 'help' }
+                };
+            }
+
+            generateGenericResponse(content) {
+                return {
+                    type: 'bot',
+                    content: `I understand you're interested in "${content}". Let me help clarify what you need:
+
+Are you looking to:
+• Find specific requirements or standards?
+• Start or continue a compliance assessment?  
+• Get information about your assets?
+• Understand governance processes?
+
+You can also try these example questions:
+• "What security requirements apply to my API?"
+• "How do I start an assessment?"
+• "Show me my compliance dashboard"`,
+                    timestamp: new Date(),
+                    suggestions: ['Find requirements', 'Start assessment', 'Show assets', 'Help me understand'],
+                    context: { type: 'clarification' }
+                };
+            }
+
+            addMessage(message) {
+                this.conversationHistory.push(message);
+                this.renderMessages();
+                this.scrollToBottom();
+            }
+
+            renderMessages() {
+                const container = document.getElementById('chat-messages');
+                container.innerHTML = this.conversationHistory.map(message => {
+                    const isBot = message.type === 'bot';
+                    const avatarClass = isBot ? 'bot-avatar' : 'user-avatar';
+                    const alignClass = isBot ? 'items-start' : 'items-end';
+                    const bubbleClass = isBot ? 
+                        'bg-gray-100 text-gray-800 rounded-br-lg rounded-t-lg' : 
+                        'bg-blue-600 text-white rounded-bl-lg rounded-t-lg';
+
+                    return `
+                        <div class="chat-bubble flex ${alignClass} mb-4">
+                            ${isBot ? `
+                                <div class="w-8 h-8 ${avatarClass} rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                    <span class="text-white text-sm">🤖</span>
+                                </div>
+                            ` : ''}
+                            <div class="max-w-xs lg:max-w-md">
+                                <div class="px-4 py-3 ${bubbleClass}">
+                                    <div class="text-sm whitespace-pre-line">${message.content}</div>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1 ${isBot ? 'text-left' : 'text-right'}">
+                                    ${this.formatTime(message.timestamp)}
+                                </div>
+                            </div>
+                            ${!isBot ? `
+                                <div class="w-8 h-8 ${avatarClass} rounded-full flex items-center justify-center ml-3 flex-shrink-0">
+                                    <span class="text-white text-sm">${this.currentUser.name[0]}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            showTypingIndicator() {
+                const container = document.getElementById('chat-messages');
+                const typingHtml = `
+                    <div id="typing-indicator" class="flex items-start mb-4">
+                        <div class="w-8 h-8 bot-avatar rounded-full flex items-center justify-center mr-3">
+                            <span class="text-white text-sm">🤖</span>
+                        </div>
+                        <div class="bg-gray-100 rounded-br-lg rounded-t-lg px-4 py-3">
+                            <div class="flex space-x-1">
+                                <div class="w-2 h-2 bg-gray-500 rounded-full typing-indicator"></div>
+                                <div class="w-2 h-2 bg-gray-500 rounded-full typing-indicator" style="animation-delay: 0.2s"></div>
+                                <div class="w-2 h-2 bg-gray-500 rounded-full typing-indicator" style="animation-delay: 0.4s"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.insertAdjacentHTML('beforeend', typingHtml);
+                this.scrollToBottom();
+            }
+
+            hideTypingIndicator() {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+            }
+
+            updateQuickReplies(suggestions) {
+                if (!suggestions) return;
+                
+                const container = document.getElementById('quick-replies');
+                container.innerHTML = suggestions.map(suggestion => `
+                    <button class="px-3 py-1 text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded-full transition-all border border-gray-200"
+                            onclick="window.conversationalAssistant.sendMessage('${suggestion.replace(/'/g, "\\'")}')">
+                        ${suggestion}
+                    </button>
+                `).join('');
+            }
+
+            updateContextInfo(context) {
+                if (!context) return;
+                
+                const container = document.getElementById('smart-context');
+                let contextHtml = '';
+
+                switch (context.type) {
+                    case 'security':
+                        contextHtml = `
+                            <div class="p-3 bg-red-50 rounded-lg">
+                                <h5 class="font-medium text-red-900 mb-2">Security Context</h5>
+                                <p class="text-sm text-red-700">${context.requirements.length} security requirements identified</p>
+                            </div>
+                        `;
+                        break;
+                    case 'assessment':
+                        contextHtml = `
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <h5 class="font-medium text-blue-900 mb-2">Assessment Context</h5>
+                                <p class="text-sm text-blue-700">Setting up assessment for ${context.asset.name}</p>
+                            </div>
+                        `;
+                        break;
+                    case 'requirements':
+                        contextHtml = `
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <h5 class="font-medium text-green-900 mb-2">Requirements Context</h5>
+                                <p class="text-sm text-green-700">${context.requirements.length} relevant requirements found</p>
+                            </div>
+                        `;
+                        break;
+                }
+
+                container.innerHTML = contextHtml;
+            }
+
+            updateCurrentContext() {
+                const container = document.getElementById('current-context');
+                container.innerHTML = `
+                    <div class="p-3 border border-gray-200 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <span class="text-lg mr-2">${this.getAssetIcon(this.currentAsset.type)}</span>
+                            <span class="font-medium text-gray-900">${this.currentAsset.name}</span>
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            ${this.currentAsset.type} • ${this.currentAsset.domain}<br>
+                            Compliance: ${this.currentAsset.complianceScore}%
+                        </div>
+                    </div>
+                `;
+            }
+
+            updateCurrentTask() {
+                if (!this.currentTask) return;
+                
+                const container = document.getElementById('current-task');
+                container.innerHTML = `
+                    <div class="space-y-3">
+                        <h4 class="font-medium text-gray-900">${this.currentTask.title}</h4>
+                        <div class="space-y-2">
+                            ${this.currentTask.steps.map(step => `
+                                <div class="flex items-center text-sm">
+                                    <div class="w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                                        step.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                                    }">
+                                        ${step.completed ? '✓' : '○'}
+                                    </div>
+                                    <span class="${step.completed ? 'text-green-700' : 'text-gray-600'}">${step.title}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            executeQuickAction(index) {
+                const action = this.quickActions[index];
+                trackInteraction('quick_action', { action: action.title });
+                action.action();
+            }
+
+            quickAction(actionType) {
+                switch(actionType) {
+                    case 'find-requirements':
+                        this.sendMessage('Show me requirements for my current asset');
+                        break;
+                    case 'start-assessment':
+                        this.sendMessage('Start a compliance assessment');
+                        break;
+                    case 'view-dashboard':
+                        this.sendMessage('Show my compliance dashboard');
+                        break;
+                    case 'switch-asset':
+                        this.sendMessage('Show me all my assets');
+                        break;
+                }
+            }
+
+            handleRoleChange(newRole) {
+                this.currentUser = mockUsers[newRole];
+                trackInteraction('conversational_role_change', { role: newRole });
+                
+                const assets = getAssetsByUser(newRole);
+                this.currentAsset = assets[0];
+                this.updateCurrentContext();
+                
+                // Add system message about role change
+                const roleChangeMessage = {
+                    type: 'bot',
+                    content: `I've switched your context to **${newRole}** role. You now have access to ${assets.length} assets. Current focus: **${this.currentAsset.name}**.
+
+How can I help you in your ${newRole} role?`,
+                    timestamp: new Date(),
+                    suggestions: ['Show my assets', 'Find requirements', 'Start assessment']
+                };
+                
+                this.addMessage(roleChangeMessage);
+                Toast.show(`Switched to ${newRole} role`, 'success');
+            }
+
+            clearConversation() {
+                this.conversationHistory = [];
+                this.currentTask = null;
+                this.renderMessages();
+                this.updateCurrentTask();
+                this.initializeConversation();
+                trackInteraction('conversation_cleared', {});
+            }
+
+            toggleVoiceMode() {
+                this.voiceMode = !this.voiceMode;
+                const button = document.getElementById('voice-toggle');
+                
+                if (this.voiceMode) {
+                    button.className = button.className.replace('bg-purple-50', 'bg-purple-100');
+                    Toast.show('Voice mode activated', 'info');
+                } else {
+                    button.className = button.className.replace('bg-purple-100', 'bg-purple-50');
+                    Toast.show('Voice mode deactivated', 'info');
+                }
+                
+                trackInteraction('voice_toggle', { enabled: this.voiceMode });
+            }
+
+            updateAnalytics() {
+                const container = document.getElementById('conversation-analytics');
+                const messageCount = this.conversationHistory.length;
+                const botMessages = this.conversationHistory.filter(m => m.type === 'bot').length;
+                const userMessages = this.conversationHistory.filter(m => m.type === 'user').length;
+
+                container.innerHTML = `
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Messages:</span>
+                        <span class="font-medium">${messageCount}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">User queries:</span>
+                        <span class="font-medium">${userMessages}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Bot responses:</span>
+                        <span class="font-medium">${botMessages}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Voice mode:</span>
+                        <span class="font-medium">${this.voiceMode ? 'On' : 'Off'}</span>
+                    </div>
+                `;
+
+                // Update every few seconds
+                setTimeout(() => this.updateAnalytics(), 3000);
+            }
+
+            scrollToBottom() {
+                const container = document.getElementById('chat-messages');
+                container.scrollTop = container.scrollHeight;
+            }
+
+            formatTime(timestamp) {
+                return timestamp.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            }
+
+            getAssetIcon(type) {
+                const icons = {
+                    'api': '🔌',
+                    'web-app': '🌐',
+                    'mobile-app': '📱',
+                    'platform': '🏗️'
+                };
+                return icons[type] || '📦';
+            }
+        }
+
+        // Initialize Conversational Assistant
+        window.conversationalAssistant = new ConversationalAssistant();
+
+        // Analytics Dashboard
+        const analyticsContainer = document.getElementById('analytics-dashboard');
+        analyticsContainer.innerHTML = AnalyticsDashboard.render && 
+            AnalyticsDashboard.render(navigationAnalytics) || '';
+    </script>
+</body>
+</html>

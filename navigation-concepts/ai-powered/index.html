@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Task Flow Navigator - GRC Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .ai-suggestion { animation: slideIn 0.5s ease-out; }
+        .pulse-dot { animation: pulse 2s infinite; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .ai-card { transition: all 0.3s ease; transform: translateY(0); }
+        .ai-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .prediction-bar { height: 4px; background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%); }
+        .task-flow-item { border-left: 3px solid transparent; transition: all 0.3s ease; }
+        .task-flow-item.active { border-left-color: #3b82f6; background: #eff6ff; }
+        .smart-badge { background: linear-gradient(45deg, #a855f7, #ec4899); }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+
+        /* Custom scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">AI-Powered Task Navigator</h1>
+                    <p class="text-sm text-gray-600">Intelligent guidance for GRC compliance</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- AI Status Indicator -->
+                    <div class="flex items-center space-x-2 bg-green-50 px-3 py-2 rounded-lg">
+                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                        <span class="text-sm text-green-700 font-medium">AI Assistant Active</span>
+                    </div>
+                    <!-- Role Switcher -->
+                    <div id="role-selector"></div>
+                    <!-- User Info -->
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-medium text-blue-700">SC</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Sarah Chen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- AI Suggestions Panel -->
+        <div class="mb-8">
+            <div class="gradient-bg rounded-xl p-6 text-white mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                            <span class="text-xl">🤖</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold">AI Recommendations</h2>
+                            <p class="text-white/80 text-sm">Based on your role and recent activity</p>
+                        </div>
+                    </div>
+                    <button class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        Configure AI
+                    </button>
+                </div>
+                
+                <!-- Smart Suggestions -->
+                <div class="grid md:grid-cols-3 gap-4" id="ai-suggestions">
+                    <!-- Dynamic suggestions will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Left Panel: Task Flow -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Smart Task Flow</h3>
+                        <span class="smart-badge text-white text-xs px-2 py-1 rounded-full">AI Powered</span>
+                    </div>
+                    
+                    <div class="space-y-3" id="task-flow">
+                        <!-- Task flow items will be populated here -->
+                    </div>
+
+                    <!-- Progress Indicator -->
+                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Compliance Progress</span>
+                            <span class="text-sm text-gray-600" id="progress-percentage">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="prediction-bar rounded-full h-2 transition-all duration-500" id="progress-bar" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2" id="progress-insight">Starting assessment...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel: Main Content -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900" id="main-content-title">Asset Overview</h3>
+                        <div id="asset-selector" class="w-64"></div>
+                    </div>
+                    
+                    <!-- Asset Context Card -->
+                    <div id="asset-context" class="mb-6">
+                        <!-- Asset details will be populated here -->
+                    </div>
+
+                    <!-- AI-Recommended Requirements -->
+                    <div id="recommended-requirements">
+                        <h4 class="text-md font-semibold text-gray-800 mb-4">AI-Recommended Requirements</h4>
+                        <div class="space-y-3" id="requirements-list">
+                            <!-- Requirements will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Predictive Insights -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex items-center mb-4">
+                        <span class="text-lg mr-2">🔮</span>
+                        <h3 class="text-lg font-semibold text-gray-900">Predictive Insights</h3>
+                    </div>
+                    
+                    <div class="space-y-4" id="predictive-insights">
+                        <!-- Insights will be populated here -->
+                    </div>
+                </div>
+
+                <!-- AI Learning Panel -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="text-lg mr-2">📈</span>
+                        <h3 class="text-lg font-semibold text-gray-900">AI Learning</h3>
+                    </div>
+                    
+                    <div class="space-y-3" id="learning-panel">
+                        <div class="text-sm text-gray-600">
+                            <strong>Patterns Detected:</strong>
+                            <ul class="mt-2 space-y-1">
+                                <li>• You often start with security requirements</li>
+                                <li>• API projects need 85% more attention</li>
+                                <li>• Best assessment time: 2-3 PM</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="border-t pt-3">
+                            <strong class="text-sm text-gray-700">Suggestions for Improvement:</strong>
+                            <div class="mt-2 text-xs text-gray-600 space-y-1">
+                                <div class="flex items-center">
+                                    <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
+                                    Consider batch processing similar assessments
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                                    Use templates for recurring patterns
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Footer -->
+    <div id="analytics-dashboard" class="mt-8"></div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { 
+            mockUsers, mockAssets, mockRequirements, trackInteraction, trackNavigation,
+            getAssetsByUser, getRequirementsForAsset, navigationAnalytics
+        } from '../shared/mockData.js';
+        
+        import { 
+            AssetContextSwitcher, RoleSelector, RequirementCard, 
+            AnalyticsDashboard, Toast
+        } from '../shared/components.js';
+
+        // AI-Powered Navigation State
+        class AINavigationState {
+            constructor() {
+                this.currentUser = mockUsers.architect;
+                this.currentAsset = null;
+                this.taskFlow = [];
+                this.aiSuggestions = [];
+                this.predictiveInsights = [];
+                this.progress = 0;
+                this.userPatterns = this.initializeUserPatterns();
+                this.init();
+            }
+
+            initializeUserPatterns() {
+                return {
+                    preferredStartTime: '14:30',
+                    averageAssessmentTime: 45,
+                    commonSequences: ['security', 'architecture', 'quality'],
+                    strugglingAreas: ['data-protection', 'api-security'],
+                    strongAreas: ['testing', 'monitoring']
+                };
+            }
+
+            init() {
+                this.setupComponents();
+                this.generateAISuggestions();
+                this.createTaskFlow();
+                this.generatePredictiveInsights();
+                this.startAILearning();
+            }
+
+            setupComponents() {
+                // Role Selector
+                const roleContainer = document.getElementById('role-selector');
+                new RoleSelector(roleContainer, ['architect', 'developer', 'manager'], 
+                    this.currentUser.role, (newRole) => this.handleRoleChange(newRole));
+
+                // Asset Context Switcher
+                const assets = getAssetsByUser(this.currentUser.role);
+                this.currentAsset = assets[0];
+                
+                const assetContainer = document.getElementById('asset-selector');
+                new AssetContextSwitcher(assetContainer, assets, (asset) => this.handleAssetChange(asset));
+
+                // Initialize with first asset
+                this.handleAssetChange(this.currentAsset);
+            }
+
+            generateAISuggestions() {
+                const suggestions = [
+                    {
+                        icon: '⚡',
+                        title: 'Quick Security Check',
+                        description: 'Start with critical security requirements for your API',
+                        confidence: 95,
+                        action: () => this.executeAIAction('security-check')
+                    },
+                    {
+                        icon: '🎯',
+                        title: 'Smart Assessment',
+                        description: 'Complete high-impact requirements first',
+                        confidence: 88,
+                        action: () => this.executeAIAction('smart-assessment')
+                    },
+                    {
+                        icon: '📊',
+                        title: 'Pattern Analysis',
+                        description: 'Review requirements based on similar projects',
+                        confidence: 76,
+                        action: () => this.executeAIAction('pattern-analysis')
+                    }
+                ];
+
+                const container = document.getElementById('ai-suggestions');
+                container.innerHTML = suggestions.map((suggestion, index) => `
+                    <div class="ai-suggestion bg-white/20 rounded-lg p-4 cursor-pointer hover:bg-white/30 transition-all"
+                         onclick="window.aiNavigator.executeSuggestion(${index})">
+                        <div class="flex items-center mb-2">
+                            <span class="text-2xl mr-2">${suggestion.icon}</span>
+                            <span class="text-sm font-medium">${suggestion.title}</span>
+                        </div>
+                        <p class="text-white/80 text-xs mb-2">${suggestion.description}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-white/70">Confidence: ${suggestion.confidence}%</span>
+                            <div class="w-16 bg-white/20 rounded-full h-1">
+                                <div class="bg-white rounded-full h-1" style="width: ${suggestion.confidence}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                this.aiSuggestions = suggestions;
+            }
+
+            createTaskFlow() {
+                const tasks = [
+                    { id: 'asset-selection', title: 'Select Asset', status: 'completed', aiScore: 100 },
+                    { id: 'requirements-analysis', title: 'Analyze Requirements', status: 'active', aiScore: 85 },
+                    { id: 'risk-assessment', title: 'Assess Risks', status: 'pending', aiScore: 70 },
+                    { id: 'compliance-check', title: 'Check Compliance', status: 'pending', aiScore: 60 },
+                    { id: 'documentation', title: 'Generate Documentation', status: 'pending', aiScore: 45 }
+                ];
+
+                const container = document.getElementById('task-flow');
+                container.innerHTML = tasks.map(task => `
+                    <div class="task-flow-item p-3 rounded-lg cursor-pointer ${task.status === 'active' ? 'active' : ''}"
+                         onclick="window.aiNavigator.selectTask('${task.id}')">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                                    task.status === 'completed' ? 'bg-green-100 text-green-600' :
+                                    task.status === 'active' ? 'bg-blue-100 text-blue-600' :
+                                    'bg-gray-100 text-gray-400'
+                                }">
+                                    ${task.status === 'completed' ? '✓' : 
+                                      task.status === 'active' ? '⏳' : '⏸️'}
+                                </div>
+                                <span class="text-sm font-medium text-gray-800">${task.title}</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs text-gray-600">AI: ${task.aiScore}%</div>
+                                <div class="w-12 bg-gray-200 rounded-full h-1 mt-1">
+                                    <div class="bg-blue-500 rounded-full h-1" style="width: ${task.aiScore}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                this.taskFlow = tasks;
+                this.updateProgress();
+            }
+
+            generatePredictiveInsights() {
+                const insights = [
+                    {
+                        icon: '🎯',
+                        title: 'Risk Prediction',
+                        description: 'High probability of compliance issues in API security',
+                        likelihood: 78,
+                        impact: 'high',
+                        action: 'Review MFA implementation'
+                    },
+                    {
+                        icon: '⏱️',
+                        title: 'Time Estimate',
+                        description: 'Assessment completion predicted in 2.5 hours',
+                        likelihood: 85,
+                        impact: 'medium',
+                        action: 'Schedule focused work time'
+                    },
+                    {
+                        icon: '💡',
+                        title: 'Optimization Opportunity',
+                        description: 'Similar patterns found in 3 other projects',
+                        likelihood: 92,
+                        impact: 'medium',
+                        action: 'Create reusable template'
+                    }
+                ];
+
+                const container = document.getElementById('predictive-insights');
+                container.innerHTML = insights.map(insight => `
+                    <div class="p-3 border border-gray-200 rounded-lg">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center">
+                                <span class="text-lg mr-2">${insight.icon}</span>
+                                <span class="text-sm font-medium text-gray-800">${insight.title}</span>
+                            </div>
+                            <span class="text-xs px-2 py-1 rounded-full ${
+                                insight.impact === 'high' ? 'bg-red-100 text-red-600' :
+                                insight.impact === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                                'bg-green-100 text-green-600'
+                            }">${insight.impact}</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mb-2">${insight.description}</p>
+                        <div class="flex justify-between items-center">
+                            <button class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                ${insight.action} →
+                            </button>
+                            <span class="text-xs text-gray-500">${insight.likelihood}% confidence</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                this.predictiveInsights = insights;
+            }
+
+            handleAssetChange(asset) {
+                this.currentAsset = asset;
+                trackNavigation(`ai-powered/asset/${asset.id}`);
+                
+                // Update asset context
+                const container = document.getElementById('asset-context');
+                container.innerHTML = `
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">${this.getAssetIcon(asset.type)}</span>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">${asset.name}</h4>
+                                    <p class="text-sm text-gray-600">${asset.type} • ${asset.domain}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-lg font-bold text-gray-900">${asset.complianceScore}%</span>
+                                <p class="text-xs text-gray-600">compliance</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="text-gray-600">
+                                <strong>Technology:</strong> ${asset.attributes.technology.slice(0, 2).join(', ')}
+                            </div>
+                            <div class="text-gray-600">
+                                <strong>Hosting:</strong> ${asset.attributes.hosting}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Update requirements
+                this.updateRecommendedRequirements(asset);
+                
+                // Regenerate AI suggestions based on new asset
+                this.generateAISuggestions();
+            }
+
+            updateRecommendedRequirements(asset) {
+                const requirements = getRequirementsForAsset(asset.id);
+                const container = document.getElementById('requirements-list');
+                
+                // AI-powered relevance scoring and sorting
+                const scoredRequirements = requirements
+                    .map(req => ({
+                        ...req,
+                        aiRelevanceScore: this.calculateAIRelevanceScore(req, asset)
+                    }))
+                    .sort((a, b) => b.aiRelevanceScore - a.aiRelevanceScore)
+                    .slice(0, 3);
+
+                container.innerHTML = scoredRequirements.map(req => 
+                    RequirementCard.render(req, req.aiRelevanceScore, true)
+                ).join('');
+            }
+
+            calculateAIRelevanceScore(requirement, asset) {
+                let score = requirement.relevanceScore;
+                
+                // AI enhancements based on user patterns
+                if (this.userPatterns.strugglingAreas.some(area => 
+                    requirement.tags.includes(area))) {
+                    score += 15; // Boost struggling areas
+                }
+                
+                if (this.userPatterns.strongAreas.some(area => 
+                    requirement.tags.includes(area))) {
+                    score -= 5; // Slightly reduce known strong areas
+                }
+                
+                // Priority boost
+                if (requirement.priority === 'mandatory') {
+                    score += 10;
+                }
+                
+                return Math.min(100, score);
+            }
+
+            handleRoleChange(newRole) {
+                this.currentUser = mockUsers[newRole];
+                trackInteraction('ai_role_change', { role: newRole });
+                
+                const assets = getAssetsByUser(newRole);
+                this.currentAsset = assets[0];
+                
+                // Reinitialize with new role context
+                this.setupComponents();
+                this.generateAISuggestions();
+                
+                Toast.show(`AI adapted to ${newRole} role preferences`, 'success');
+            }
+
+            executeSuggestion(index) {
+                const suggestion = this.aiSuggestions[index];
+                trackInteraction('ai_suggestion_click', { 
+                    suggestion: suggestion.title,
+                    confidence: suggestion.confidence 
+                });
+                
+                suggestion.action();
+                Toast.show(`Executing AI suggestion: ${suggestion.title}`, 'info');
+            }
+
+            executeAIAction(actionType) {
+                switch(actionType) {
+                    case 'security-check':
+                        this.focusOnDomain('security');
+                        break;
+                    case 'smart-assessment':
+                        this.startSmartAssessment();
+                        break;
+                    case 'pattern-analysis':
+                        this.showPatternAnalysis();
+                        break;
+                }
+            }
+
+            focusOnDomain(domain) {
+                const requirements = getRequirementsForAsset(this.currentAsset.id)
+                    .filter(req => req.domain === domain);
+                
+                const container = document.getElementById('requirements-list');
+                container.innerHTML = `
+                    <div class="mb-4 p-3 bg-blue-50 rounded-lg">
+                        <h5 class="font-medium text-blue-900 mb-2">AI Focus: ${domain.toUpperCase()} Requirements</h5>
+                        <p class="text-sm text-blue-700">Showing ${requirements.length} ${domain} requirements for ${this.currentAsset.name}</p>
+                    </div>
+                    ${requirements.map(req => RequirementCard.render(req, req.relevanceScore, true)).join('')}
+                `;
+            }
+
+            startSmartAssessment() {
+                // Update task flow to show AI-optimized sequence
+                this.createTaskFlow();
+                this.updateProgress();
+                Toast.show('AI has optimized your assessment flow', 'success');
+            }
+
+            showPatternAnalysis() {
+                Toast.show('Analyzing patterns from similar projects...', 'info');
+                setTimeout(() => {
+                    Toast.show('Found 3 similar patterns - check insights panel', 'success');
+                }, 2000);
+            }
+
+            selectTask(taskId) {
+                trackInteraction('ai_task_select', { task: taskId });
+                
+                // Update task flow state
+                this.taskFlow = this.taskFlow.map(task => ({
+                    ...task,
+                    status: task.id === taskId ? 'active' : 
+                           task.status === 'active' ? 'completed' : task.status
+                }));
+                
+                this.createTaskFlow();
+                Toast.show(`AI guidance activated for task`, 'info');
+            }
+
+            updateProgress() {
+                const completedTasks = this.taskFlow.filter(t => t.status === 'completed').length;
+                const totalTasks = this.taskFlow.length;
+                const percentage = Math.round((completedTasks / totalTasks) * 100);
+                
+                document.getElementById('progress-percentage').textContent = `${percentage}%`;
+                document.getElementById('progress-bar').style.width = `${percentage}%`;
+                
+                const insights = [
+                    'Starting assessment...',
+                    'Good progress on requirements analysis',
+                    'Ready for risk assessment phase',
+                    'Compliance check in progress',
+                    'Assessment nearly complete!'
+                ];
+                
+                const currentTaskIndex = Math.min(completedTasks, insights.length - 1);
+                document.getElementById('progress-insight').textContent = insights[currentTaskIndex];
+                
+                this.progress = percentage;
+            }
+
+            startAILearning() {
+                // Simulate AI learning from user interactions
+                setInterval(() => {
+                    if (navigationAnalytics.interactions.length > 0) {
+                        const recentInteraction = navigationAnalytics.interactions[navigationAnalytics.interactions.length - 1];
+                        this.updateUserPatterns(recentInteraction);
+                    }
+                }, 5000);
+            }
+
+            updateUserPatterns(interaction) {
+                // AI learning simulation
+                if (interaction.action === 'requirement_click') {
+                    const domain = interaction.data?.domain;
+                    if (domain && !this.userPatterns.commonSequences.includes(domain)) {
+                        this.userPatterns.commonSequences.push(domain);
+                    }
+                }
+            }
+
+            getAssetIcon(type) {
+                const icons = {
+                    'api': '🔌',
+                    'web-app': '🌐',
+                    'mobile-app': '📱',
+                    'platform': '🏗️'
+                };
+                return icons[type] || '📦';
+            }
+        }
+
+        // Initialize AI Navigation System
+        window.aiNavigator = new AINavigationState();
+
+        // Analytics Dashboard
+        const analyticsContainer = document.getElementById('analytics-dashboard');
+        new AnalyticsDashboard.render && 
+            (analyticsContainer.innerHTML = AnalyticsDashboard.render(navigationAnalytics));
+    </script>
+</body>
+</html>
