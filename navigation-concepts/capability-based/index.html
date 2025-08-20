@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capability-Based Journey Navigation - GRC Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .capability-sidebar {
+            background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%);
+        }
+        .maturity-level {
+            transition: all 0.3s ease;
+        }
+        .maturity-level.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        .journey-step {
+            transition: all 0.3s ease;
+        }
+        .journey-step:hover {
+            transform: translateX(4px);
+        }
+        .roadmap-item {
+            transition: all 0.2s ease;
+        }
+        .roadmap-item:hover {
+            background-color: #f8fafc;
+        }
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring-circle {
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: 251.2;
+            transition: stroke-dashoffset 0.5s ease-in-out;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+    <!-- Capability Sidebar -->
+    <div class="capability-sidebar w-80 flex flex-col text-white">
+        <!-- Header -->
+        <div class="p-6 border-b border-blue-600">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <span class="text-xl font-bold">GRC</span>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold">Capability Journey</h1>
+                    <p class="text-blue-200 text-sm">IT Excellence Framework</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capabilities Navigation -->
+        <div class="flex-1 overflow-y-auto py-4">
+            <div class="px-4 mb-4">
+                <div class="text-blue-200 text-xs uppercase tracking-wide font-medium mb-2">Core Capabilities</div>
+            </div>
+            
+            <div class="space-y-1 px-2" id="capabilities-list">
+                <!-- Capabilities will be rendered here -->
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="p-4 border-t border-blue-600">
+            <div class="flex items-center justify-between">
+                <select id="role-selector" class="bg-blue-700 text-white text-sm rounded px-3 py-2 border border-blue-600">
+                    <option value="architect">Solutions Architect</option>
+                    <option value="developer" selected>Senior Developer</option>
+                    <option value="manager">IT Manager</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col">
+        <!-- Top Header -->
+        <header class="bg-white border-b border-gray-200 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900" id="capability-title">API Management Capability</h2>
+                        <p class="text-gray-600" id="capability-description">Comprehensive API lifecycle management and governance</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="text-sm text-gray-500">Maturity Level:</div>
+                        <div class="flex space-x-1" id="maturity-indicators">
+                            <!-- Maturity level dots will be rendered here -->
+                        </div>
+                        <span class="text-lg font-bold text-blue-600" id="maturity-level">3</span>
+                    </div>
+                </div>
+                
+                <!-- Universal Search -->
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            placeholder="Search capabilities, assets, or requirements..." 
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            id="universal-search"
+                        >
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Info -->
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span class="text-sm font-medium" id="user-initial">S</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700" id="user-name">Sarah Chen</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Tabs -->
+        <div class="bg-white border-b border-gray-200 px-6">
+            <nav class="flex space-x-8">
+                <button class="tab-button py-4 px-2 border-b-2 text-sm font-medium transition-all duration-200 border-blue-500 text-blue-600" data-tab="journey">
+                    🎯 Maturity Journey
+                </button>
+                <button class="tab-button py-4 px-2 border-b-2 text-sm font-medium transition-all duration-200 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="roadmap">
+                    🗺️ Implementation Roadmap
+                </button>
+                <button class="tab-button py-4 px-2 border-b-2 text-sm font-medium transition-all duration-200 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="standards">
+                    📋 Standards & Requirements
+                </button>
+                <button class="tab-button py-4 px-2 border-b-2 text-sm font-medium transition-all duration-200 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="assets">
+                    🏗️ Related Assets <span class="asset-count ml-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">4</span>
+                </button>
+                <button class="tab-button py-4 px-2 border-b-2 text-sm font-medium transition-all duration-200 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="dependencies">
+                    🔗 Dependencies
+                </button>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6">
+            <!-- Maturity Journey Tab -->
+            <div class="tab-content active" id="tab-journey">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Maturity Assessment</h3>
+                    <p class="text-gray-600">Current capability maturity and progression pathway</p>
+                </div>
+
+                <!-- Maturity Level Cards -->
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8" id="maturity-cards">
+                    <!-- Maturity level cards will be rendered here -->
+                </div>
+
+                <!-- Progress Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-lg border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold text-gray-900">Standards Compliance</h4>
+                            <div class="text-2xl">📊</div>
+                        </div>
+                        <div class="text-3xl font-bold text-blue-600 mb-2" id="compliance-percentage">78%</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 78%" id="compliance-bar"></div>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span id="standards-met">14</span> of <span id="standards-total">18</span> standards met
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold text-gray-900">Implementation Progress</h4>
+                            <div class="text-2xl">🚀</div>
+                        </div>
+                        <div class="text-3xl font-bold text-green-600 mb-2">
+                            <span id="roadmap-completed">7</span>/<span id="roadmap-total">12</span>
+                        </div>
+                        <div class="text-sm text-gray-600">Roadmap items completed</div>
+                    </div>
+
+                    <div class="bg-white rounded-lg border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold text-gray-900">Assets Managed</h4>
+                            <div class="text-2xl">🏗️</div>
+                        </div>
+                        <div class="text-3xl font-bold text-purple-600 mb-2" id="assets-count">4</div>
+                        <div class="text-sm text-gray-600">Applications in scope</div>
+                    </div>
+                </div>
+
+                <!-- Next Steps -->
+                <div class="bg-white rounded-lg border border-gray-200 p-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">Next Steps to Level <span id="next-level">4</span></h4>
+                    <div class="space-y-3" id="next-steps">
+                        <!-- Next steps will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Implementation Roadmap Tab -->
+            <div class="tab-content" id="tab-roadmap">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Implementation Roadmap</h3>
+                    <p class="text-gray-600">Planned improvements and milestones for <span class="capability-name font-medium">API Management</span></p>
+                </div>
+
+                <div class="space-y-6" id="roadmap-items">
+                    <!-- Roadmap items will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Standards & Requirements Tab -->
+            <div class="tab-content" id="tab-standards">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Applicable Standards</h3>
+                    <p class="text-gray-600">Requirements and standards relevant to <span class="capability-name font-medium">API Management</span></p>
+                </div>
+
+                <div class="space-y-6" id="capability-standards">
+                    <!-- Standards will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Related Assets Tab -->
+            <div class="tab-content" id="tab-assets">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Related Assets</h3>
+                    <p class="text-gray-600">Applications and systems utilizing <span class="capability-name font-medium">API Management</span></p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="capability-assets">
+                    <!-- Assets will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Dependencies Tab -->
+            <div class="tab-content" id="tab-dependencies">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Capability Dependencies</h3>
+                    <p class="text-gray-600">Dependencies and relationships between capabilities</p>
+                </div>
+
+                <div id="dependency-map">
+                    <!-- Dependency map will be rendered here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Analytics Footer -->
+    <div class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white px-6 py-2 text-xs">
+        <div class="flex items-center justify-between max-w-6xl mx-auto">
+            <div class="flex items-center space-x-6">
+                <div>Session: <span id="session-time">0m 42s</span></div>
+                <div>Capabilities Viewed: <span id="capabilities-viewed">3</span></div>
+                <div>Actions: <span id="actions-count">12</span></div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div>Performance: <span class="text-green-400">Good</span></div>
+                <div>Last Updated: <span id="last-updated">2 min ago</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        const mockCapabilities = [
+            {
+                id: 'cap-api-management',
+                name: 'API Management',
+                description: 'Comprehensive API lifecycle management and governance',
+                maturityLevel: 3,
+                assets: ['customer-api', 'payment-gateway', 'analytics-api', 'notification-service'],
+                requirements: ['sec-001', 'sec-002', 'arch-003', 'qa-001', 'qa-002'],
+                roadmapItems: [
+                    {
+                        id: 'rm-1',
+                        title: 'API Gateway Implementation',
+                        status: 'completed',
+                        dueDate: '2024-03-15',
+                        priority: 'high'
+                    },
+                    {
+                        id: 'rm-2',
+                        title: 'API Versioning Strategy',
+                        status: 'in-progress',
+                        dueDate: '2024-04-30',
+                        priority: 'high'
+                    },
+                    {
+                        id: 'rm-3',
+                        title: 'API Monitoring & Analytics',
+                        status: 'in-progress',
+                        dueDate: '2024-05-15',
+                        priority: 'medium'
+                    },
+                    {
+                        id: 'rm-4',
+                        title: 'Developer Portal Enhancement',
+                        status: 'planned',
+                        dueDate: '2024-06-30',
+                        priority: 'medium'
+                    }
+                ]
+            },
+            {
+                id: 'cap-data-processing',
+                name: 'Data Processing',
+                description: 'Scalable data ingestion, transformation, and analytics',
+                maturityLevel: 2,
+                assets: ['analytics-dashboard', 'data-warehouse', 'etl-pipeline'],
+                requirements: ['sec-003', 'arch-001', 'arch-002', 'qa-003'],
+                roadmapItems: [
+                    {
+                        id: 'rm-5',
+                        title: 'Data Pipeline Architecture',
+                        status: 'in-progress',
+                        dueDate: '2024-04-20',
+                        priority: 'high'
+                    },
+                    {
+                        id: 'rm-6',
+                        title: 'Real-time Processing',
+                        status: 'planned',
+                        dueDate: '2024-07-15',
+                        priority: 'medium'
+                    }
+                ]
+            },
+            {
+                id: 'cap-cloud-infrastructure',
+                name: 'Cloud Infrastructure',
+                description: 'Scalable, secure, and cost-effective cloud operations',
+                maturityLevel: 4,
+                assets: ['kubernetes-cluster', 'monitoring-stack', 'ci-cd-pipeline', 'backup-system'],
+                requirements: ['sec-004', 'arch-004', 'arch-005', 'qa-004'],
+                roadmapItems: [
+                    {
+                        id: 'rm-7',
+                        title: 'Multi-region Deployment',
+                        status: 'completed',
+                        dueDate: '2024-02-28',
+                        priority: 'high'
+                    },
+                    {
+                        id: 'rm-8',
+                        title: 'Auto-scaling Optimization',
+                        status: 'completed',
+                        dueDate: '2024-03-31',
+                        priority: 'medium'
+                    }
+                ]
+            },
+            {
+                id: 'cap-devops-cicd',
+                name: 'DevOps & CI/CD',
+                description: 'Automated deployment and continuous integration',
+                maturityLevel: 3,
+                assets: ['jenkins-server', 'docker-registry', 'testing-framework'],
+                requirements: ['arch-006', 'qa-005', 'qa-006'],
+                roadmapItems: [
+                    {
+                        id: 'rm-9',
+                        title: 'GitOps Implementation',
+                        status: 'in-progress',
+                        dueDate: '2024-05-30',
+                        priority: 'high'
+                    }
+                ]
+            },
+            {
+                id: 'cap-mobile-development',
+                name: 'Mobile Development',
+                description: 'Cross-platform mobile application development',
+                maturityLevel: 2,
+                assets: ['mobile-app', 'push-notification-service'],
+                requirements: ['sec-005', 'qa-007'],
+                roadmapItems: [
+                    {
+                        id: 'rm-10',
+                        title: 'React Native Migration',
+                        status: 'planned',
+                        dueDate: '2024-08-15',
+                        priority: 'medium'
+                    }
+                ]
+            },
+            {
+                id: 'cap-security-operations',
+                name: 'Security Operations',
+                description: 'Comprehensive security monitoring and incident response',
+                maturityLevel: 3,
+                assets: ['security-dashboard', 'threat-detection', 'audit-logging'],
+                requirements: ['sec-006', 'sec-007', 'sec-008'],
+                roadmapItems: [
+                    {
+                        id: 'rm-11',
+                        title: 'Zero Trust Architecture',
+                        status: 'in-progress',
+                        dueDate: '2024-06-30',
+                        priority: 'high'
+                    }
+                ]
+            }
+        ];
+
+        const mockAssets = [
+            {
+                id: 'customer-api',
+                name: 'Customer API',
+                type: 'API Service',
+                status: 'production',
+                riskLevel: 'medium',
+                compliance: 85,
+                lastAssessment: '2024-01-15'
+            },
+            {
+                id: 'payment-gateway',
+                name: 'Payment Gateway',
+                type: 'Financial Service',
+                status: 'production',
+                riskLevel: 'high',
+                compliance: 95,
+                lastAssessment: '2024-01-20'
+            },
+            {
+                id: 'analytics-api',
+                name: 'Analytics API',
+                type: 'Data Service',
+                status: 'production',
+                riskLevel: 'low',
+                compliance: 78,
+                lastAssessment: '2024-01-10'
+            },
+            {
+                id: 'notification-service',
+                name: 'Notification Service',
+                type: 'Communication',
+                status: 'production',
+                riskLevel: 'low',
+                compliance: 82,
+                lastAssessment: '2024-01-18'
+            }
+        ];
+
+        const mockRequirements = [
+            {
+                id: 'sec-001',
+                title: 'API Authentication & Authorization',
+                domain: 'Security',
+                priority: 'High',
+                status: 'compliant',
+                description: 'All APIs must implement OAuth 2.0 or JWT-based authentication'
+            },
+            {
+                id: 'sec-002',
+                title: 'API Rate Limiting',
+                domain: 'Security',
+                priority: 'Medium',
+                status: 'compliant',
+                description: 'Implement rate limiting to prevent abuse and ensure service availability'
+            },
+            {
+                id: 'arch-003',
+                title: 'API Versioning Standards',
+                domain: 'Architecture',
+                priority: 'High',
+                status: 'partial',
+                description: 'APIs must follow semantic versioning and maintain backward compatibility'
+            },
+            {
+                id: 'qa-001',
+                title: 'API Documentation',
+                domain: 'Quality',
+                priority: 'Medium',
+                status: 'compliant',
+                description: 'All APIs must have comprehensive OpenAPI documentation'
+            },
+            {
+                id: 'qa-002',
+                title: 'API Testing Coverage',
+                domain: 'Quality',
+                priority: 'High',
+                status: 'partial',
+                description: 'APIs must have automated tests covering all endpoints and error scenarios'
+            }
+        ];
+
+        const users = {
+            architect: { name: 'Michael Zhang', role: 'Solutions Architect' },
+            developer: { name: 'Sarah Chen', role: 'Senior Developer' },
+            manager: { name: 'David Rodriguez', role: 'IT Manager' }
+        };
+
+        // Application State
+        let currentState = {
+            activeCapability: 'cap-api-management',
+            activeTab: 'journey',
+            currentRole: 'developer',
+            sessionStartTime: Date.now(),
+            capabilitiesViewed: new Set(['cap-api-management']),
+            actionCount: 0
+        };
+
+        // Utility Functions
+        function getCapabilityById(id) {
+            return mockCapabilities.find(cap => cap.id === id);
+        }
+
+        function getCapabilityProgress(capability) {
+            if (!capability) return 0;
+            return 50 + (capability.maturityLevel * 10) + Math.floor(Math.random() * 10);
+        }
+
+        function getMaturityLevelName(level) {
+            const names = {
+                1: 'Initial',
+                2: 'Developing', 
+                3: 'Defined',
+                4: 'Managed',
+                5: 'Optimized'
+            };
+            return names[level] || 'Unknown';
+        }
+
+        function getMaturityLevelDescription(level) {
+            const descriptions = {
+                1: 'Ad-hoc processes',
+                2: 'Basic practices',
+                3: 'Standardized approach',
+                4: 'Measured & controlled',
+                5: 'Continuously improving'
+            };
+            return descriptions[level] || 'No description';
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'completed': 'bg-green-500 text-white',
+                'in-progress': 'bg-yellow-500 text-white',
+                'planned': 'bg-gray-300 text-gray-700'
+            };
+            return colors[status] || 'bg-gray-300 text-gray-700';
+        }
+
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'completed': 'bg-green-100 text-green-800',
+                'in-progress': 'bg-yellow-100 text-yellow-800',
+                'planned': 'bg-gray-100 text-gray-800'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getPriorityColor(priority) {
+            const colors = {
+                'high': 'text-red-600',
+                'medium': 'text-yellow-600',
+                'low': 'text-green-600'
+            };
+            return colors[priority] || 'text-gray-600';
+        }
+
+        function trackAction(action) {
+            currentState.actionCount++;
+            updateAnalytics();
+        }
+
+        // Render Functions
+        function renderCapabilitiesList() {
+            const container = document.getElementById('capabilities-list');
+            container.innerHTML = mockCapabilities.map(capability => `
+                <div 
+                    class="journey-step px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                        currentState.activeCapability === capability.id 
+                            ? 'bg-blue-600 shadow-lg' 
+                            : 'hover:bg-blue-700 hover:bg-opacity-50'
+                    }"
+                    onclick="setActiveCapability('${capability.id}')"
+                >
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-medium">${capability.name}</span>
+                                <div class="flex space-x-1">
+                                    ${Array.from({length: 5}, (_, i) => `
+                                        <div class="w-2 h-2 rounded-full ${
+                                            i < capability.maturityLevel ? 'bg-yellow-400' : 'bg-blue-800'
+                                        }"></div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="text-blue-200 text-xs mt-1">${capability.description}</div>
+                        </div>
+                        <div class="ml-2 flex flex-col items-end">
+                            <div class="text-xs text-blue-200">Level</div>
+                            <div class="text-sm font-bold">${capability.maturityLevel}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2 flex items-center justify-between text-xs text-blue-200">
+                        <span>${capability.assets?.length || 0} assets</span>
+                        <span>${capability.requirements?.length || 0} standards</span>
+                        <div class="flex items-center space-x-1">
+                            <div class="w-1 h-1 rounded-full bg-green-400 pulse-dot"></div>
+                            <span>${getCapabilityProgress(capability)}%</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMaturityIndicators() {
+            const container = document.getElementById('maturity-indicators');
+            const capability = getCapabilityById(currentState.activeCapability);
+            
+            container.innerHTML = Array.from({length: 5}, (_, i) => `
+                <div class="maturity-level w-3 h-3 rounded-full border-2 ${
+                    i < capability.maturityLevel 
+                        ? 'bg-blue-500 border-blue-500' 
+                        : 'bg-white border-gray-300'
+                }"></div>
+            `).join('');
+        }
+
+        function renderMaturityCards() {
+            const container = document.getElementById('maturity-cards');
+            const capability = getCapabilityById(currentState.activeCapability);
+            
+            container.innerHTML = Array.from({length: 5}, (_, i) => {
+                const level = i + 1;
+                return `
+                    <div class="bg-white rounded-lg border-2 p-6 text-center transition-all duration-300 ${
+                        level <= capability.maturityLevel 
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'border-gray-200 hover:border-gray-300'
+                    }">
+                        <div class="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center text-lg font-bold ${
+                            level <= capability.maturityLevel 
+                                ? 'bg-blue-500 text-white' 
+                                : 'bg-gray-200 text-gray-600'
+                        }">
+                            ${level}
+                        </div>
+                        <div class="text-sm font-medium text-gray-900 mb-1">${getMaturityLevelName(level)}</div>
+                        <div class="text-xs text-gray-500">${getMaturityLevelDescription(level)}</div>
+                        ${level === capability.maturityLevel ? '<div class="mt-2 text-xs font-medium text-blue-600">Current Level</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRoadmapItems() {
+            const container = document.getElementById('roadmap-items');
+            const capability = getCapabilityById(currentState.activeCapability);
+            const roadmapItems = capability?.roadmapItems || [];
+
+            container.innerHTML = roadmapItems.map((item, index) => `
+                <div class="roadmap-item bg-white rounded-lg border border-gray-200 p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <div class="relative">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${getStatusColor(item.status)}">
+                                    ${index + 1}
+                                </div>
+                                ${index < roadmapItems.length - 1 ? '<div class="absolute top-8 left-1/2 w-0.5 h-8 bg-gray-300 transform -translate-x-1/2"></div>' : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="text-lg font-semibold text-gray-900">${item.title}</h4>
+                                <div class="flex items-center space-x-3">
+                                    <span class="px-3 py-1 text-sm font-medium rounded-full ${getStatusBadgeClass(item.status)}">
+                                        ${item.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                    </span>
+                                    <span class="text-sm text-gray-500">${new Date(item.dueDate).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-gray-600 mb-4">
+                                Comprehensive implementation plan with automated testing, monitoring, and documentation. 
+                                Includes integration with existing systems and security compliance validation.
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2 text-sm text-gray-500">
+                                    <span class="${getPriorityColor(item.priority)}">Priority: ${item.priority}</span>
+                                    <span>•</span>
+                                    <span>Effort: ${Math.floor(Math.random() * 8) + 1} weeks</span>
+                                </div>
+                                <button class="text-blue-600 hover:text-blue-800 text-sm font-medium" onclick="trackAction('roadmap_detail_view')">
+                                    View Details →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCapabilityStandards() {
+            const container = document.getElementById('capability-standards');
+            const capability = getCapabilityById(currentState.activeCapability);
+            const requirementIds = capability?.requirements || [];
+            
+            const capabilityRequirements = mockRequirements.filter(req => 
+                requirementIds.includes(req.id)
+            );
+
+            const groupedReqs = capabilityRequirements.reduce((acc, req) => {
+                if (!acc[req.domain]) acc[req.domain] = [];
+                acc[req.domain].push(req);
+                return acc;
+            }, {});
+
+            container.innerHTML = Object.keys(groupedReqs).map(domain => `
+                <div class="bg-white rounded-lg border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                        <h4 class="text-lg font-semibold text-gray-900 capitalize">
+                            ${domain} Standards
+                            <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded">${groupedReqs[domain].length}</span>
+                        </h4>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid gap-4">
+                            ${groupedReqs[domain].map(req => `
+                                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h5 class="font-medium text-gray-900">${req.title}</h5>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="px-2 py-1 text-xs font-medium rounded ${
+                                                req.status === 'compliant' ? 'bg-green-100 text-green-800' :
+                                                req.status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                                                'bg-red-100 text-red-800'
+                                            }">
+                                                ${req.status}
+                                            </span>
+                                            <span class="text-xs font-medium ${getPriorityColor(req.priority.toLowerCase())}">${req.priority}</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-600 text-sm">${req.description}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCapabilityAssets() {
+            const container = document.getElementById('capability-assets');
+            const capability = getCapabilityById(currentState.activeCapability);
+            const assetIds = capability?.assets || [];
+            const capabilityAssets = mockAssets.filter(asset => assetIds.includes(asset.id));
+
+            container.innerHTML = capabilityAssets.map(asset => `
+                <div class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-semibold text-gray-900">${asset.name}</h4>
+                        <div class="flex items-center space-x-1">
+                            <div class="w-3 h-3 rounded-full ${
+                                asset.riskLevel === 'low' ? 'bg-green-500' :
+                                asset.riskLevel === 'medium' ? 'bg-yellow-500' : 'bg-red-500'
+                            }"></div>
+                            <span class="text-sm text-gray-600 capitalize">${asset.riskLevel} Risk</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Type:</span>
+                            <span class="font-medium">${asset.type}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Status:</span>
+                            <span class="font-medium capitalize">${asset.status}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Compliance:</span>
+                            <span class="font-medium">${asset.compliance}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: ${asset.compliance}%"></div>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Last Assessment:</span>
+                            <span class="font-medium">${new Date(asset.lastAssessment).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    
+                    <button class="mt-4 w-full text-blue-600 hover:text-blue-800 text-sm font-medium" onclick="trackAction('asset_detail_view')">
+                        View Details →
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function renderDependencyMap() {
+            const container = document.getElementById('dependency-map');
+            const capability = getCapabilityById(currentState.activeCapability);
+
+            container.innerHTML = `
+                <div class="bg-white rounded-lg border border-gray-200 p-8">
+                    <div class="text-center mb-8">
+                        <div class="text-6xl text-gray-400 mb-4">🔗</div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Capability Dependencies</h3>
+                        <p class="text-gray-600 mb-6">Interactive dependency map showing relationships between capabilities</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                        ${mockCapabilities.map(cap => `
+                            <div class="p-4 border border-gray-200 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                                cap.id === currentState.activeCapability ? 'bg-blue-50 border-blue-500' : ''
+                            }" onclick="setActiveCapability('${cap.id}')">
+                                <div class="text-sm font-medium text-gray-900">${cap.name}</div>
+                                <div class="text-xs text-gray-500">Level ${cap.maturityLevel}</div>
+                                <div class="text-xs text-gray-400 mt-1">${cap.assets?.length || 0} assets</div>
+                                <div class="flex space-x-1 mt-2">
+                                    ${Array.from({length: 5}, (_, i) => `
+                                        <div class="w-1.5 h-1.5 rounded-full ${
+                                            i < cap.maturityLevel ? 'bg-blue-500' : 'bg-gray-300'
+                                        }"></div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="font-medium text-gray-900 mb-4">Common Dependencies for ${capability.name}:</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-bold text-blue-600">Sec</span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium">Security Operations</div>
+                                    <div class="text-xs text-gray-500">Authentication & Authorization</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-bold text-green-600">Infra</span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium">Cloud Infrastructure</div>
+                                    <div class="text-xs text-gray-500">Hosting & Scaling</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-bold text-yellow-600">CI/CD</span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium">DevOps & CI/CD</div>
+                                    <div class="text-xs text-gray-500">Deployment & Testing</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-bold text-purple-600">Data</span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium">Data Processing</div>
+                                    <div class="text-xs text-gray-500">Analytics & Insights</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderNextSteps() {
+            const container = document.getElementById('next-steps');
+            const nextSteps = [
+                'Implement comprehensive API monitoring dashboard with real-time metrics',
+                'Establish API governance framework with automated compliance checking',
+                'Deploy advanced API gateway with rate limiting and security policies',
+                'Create developer portal with interactive documentation and testing tools'
+            ];
+
+            container.innerHTML = nextSteps.map((step, index) => `
+                <div class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
+                        ${index + 1}
+                    </div>
+                    <div class="flex-1 text-sm text-gray-900">${step}</div>
+                    <button class="text-blue-600 hover:text-blue-800 text-xs font-medium" onclick="trackAction('next_step_plan')">
+                        Plan
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updateHeader() {
+            const capability = getCapabilityById(currentState.activeCapability);
+            document.getElementById('capability-title').textContent = `${capability.name} Capability`;
+            document.getElementById('capability-description').textContent = capability.description;
+            document.getElementById('maturity-level').textContent = capability.maturityLevel;
+            document.getElementById('next-level').textContent = capability.maturityLevel + 1;
+            
+            // Update capability name spans
+            document.querySelectorAll('.capability-name').forEach(el => {
+                el.textContent = capability.name;
+            });
+            
+            // Update asset count
+            document.querySelector('.asset-count').textContent = capability.assets?.length || 0;
+            
+            renderMaturityIndicators();
+        }
+
+        function updateAnalytics() {
+            const elapsed = Math.floor((Date.now() - currentState.sessionStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            document.getElementById('session-time').textContent = `${minutes}m ${seconds}s`;
+            document.getElementById('capabilities-viewed').textContent = currentState.capabilitiesViewed.size;
+            document.getElementById('actions-count').textContent = currentState.actionCount;
+            
+            const now = new Date();
+            document.getElementById('last-updated').textContent = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        function updateUserInfo() {
+            const user = users[currentState.currentRole];
+            document.getElementById('user-name').textContent = user.name;
+            document.getElementById('user-initial').textContent = user.name.split(' ')[0].charAt(0);
+        }
+
+        // Event Handlers
+        function setActiveCapability(capabilityId) {
+            currentState.activeCapability = capabilityId;
+            currentState.capabilitiesViewed.add(capabilityId);
+            currentState.activeTab = 'journey';
+            
+            updateHeader();
+            renderCapabilitiesList();
+            renderMaturityCards();
+            renderRoadmapItems();
+            renderCapabilityStandards();
+            renderCapabilityAssets();
+            renderDependencyMap();
+            renderNextSteps();
+            
+            // Update active tab
+            setActiveTab('journey');
+            
+            trackAction('capability_switch');
+        }
+
+        function setActiveTab(tabName) {
+            currentState.activeTab = tabName;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                if (btn.dataset.tab === tabName) {
+                    btn.className = 'tab-button py-4 px-2 border-b-2 text-sm font-medium transition-all duration-200 border-blue-500 text-blue-600';
+                } else {
+                    btn.className = 'tab-button py-4 px-2 border-b-2 text-sm font-medium transition-all duration-200 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
+                }
+            });
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                if (content.id === `tab-${tabName}`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+            
+            trackAction('tab_switch');
+        }
+
+        function changeRole(newRole) {
+            currentState.currentRole = newRole;
+            updateUserInfo();
+            trackAction('role_change');
+        }
+
+        // Initialize Application
+        function initializeApp() {
+            renderCapabilitiesList();
+            updateHeader();
+            renderMaturityCards();
+            renderRoadmapItems();
+            renderCapabilityStandards();
+            renderCapabilityAssets();
+            renderDependencyMap();
+            renderNextSteps();
+            updateUserInfo();
+            
+            // Set up event listeners
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+            });
+            
+            document.getElementById('role-selector').addEventListener('change', (e) => {
+                changeRole(e.target.value);
+            });
+            
+            document.getElementById('universal-search').addEventListener('input', (e) => {
+                if (e.target.value.length > 2) {
+                    trackAction('search');
+                }
+            });
+            
+            // Start analytics timer
+            setInterval(updateAnalytics, 1000);
+            
+            trackAction('app_initialized');
+        }
+
+        // Start the application
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>

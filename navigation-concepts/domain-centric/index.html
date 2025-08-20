@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain-Centric Excellence Centers - GRC Portal</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8fafc;
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .header-title p {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .role-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-selector label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .role-selector select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .role-selector select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Domain tabs */
+        .domain-tabs {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tabs-container {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .domain-tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 16px 24px;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            position: relative;
+        }
+
+        .domain-tab:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .domain-tab.active {
+            border-bottom-color: currentColor;
+        }
+
+        /* Domain colors */
+        .domain-security {
+            color: #ef4444;
+            background-color: #fef2f2;
+        }
+        .domain-security.active,
+        .domain-security:hover {
+            background-color: #fee2e2;
+        }
+
+        .domain-architecture {
+            color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .domain-architecture.active,
+        .domain-architecture:hover {
+            background-color: #dbeafe;
+        }
+
+        .domain-quality {
+            color: #10b981;
+            background-color: #ecfdf5;
+        }
+        .domain-quality.active,
+        .domain-quality:hover {
+            background-color: #d1fae5;
+        }
+
+        .domain-cross {
+            color: #8b5cf6;
+            background-color: #f5f3ff;
+        }
+        .domain-cross.active,
+        .domain-cross:hover {
+            background-color: #ede9fe;
+        }
+
+        /* Main content */
+        .main-content {
+            padding: 32px 0;
+        }
+
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Role focus card */
+        .role-focus {
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .role-focus h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .role-focus p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Metrics grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-card .title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .metric-card .subtitle {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Content sections */
+        .content-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .section-content {
+            padding: 24px;
+        }
+
+        /* Requirements list */
+        .requirements-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .requirement-card {
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .requirement-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .requirement-card h4 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .requirement-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-mandatory {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .status-recommended {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            transition: width 0.8s ease-in-out;
+            border-radius: 4px;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* View selector */
+        .view-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        .view-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            color: #64748b;
+        }
+
+        .view-option:hover {
+            color: #475569;
+        }
+
+        .view-option.active {
+            background: white;
+            color: #1e293b;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Assets grid */
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        /* Assets list */
+        .assets-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .asset-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .asset-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .asset-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+
+        .asset-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .asset-info p {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .asset-score {
+            text-align: right;
+        }
+
+        .asset-score .score {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .asset-score .label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .asset-progress {
+            margin-bottom: 12px;
+        }
+
+        .asset-progress .progress-bar {
+            width: 100%;
+            height: 8px;
+            margin-bottom: 8px;
+        }
+
+        .asset-meta {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Cross-domain specific styles */
+        .cross-domain-progress {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .domain-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .domain-progress .domain-name {
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 80px;
+        }
+
+        .domain-progress .progress-container {
+            flex: 1;
+            margin: 0 12px;
+        }
+
+        .domain-progress .progress-bar {
+            width: 120px;
+        }
+
+        .domain-progress .progress-text {
+            min-width: 35px;
+            text-align: right;
+        }
+
+        /* Domain-specific progress colors */
+        .progress-security { background: #ef4444; }
+        .progress-architecture { background: #3b82f6; }
+        .progress-quality { background: #10b981; }
+        .progress-cross { background: #8b5cf6; }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .tabs-container {
+                flex-direction: column;
+            }
+
+            .domain-tab {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+                text-align: left;
+            }
+
+            .domain-tab.active {
+                border-left-color: currentColor;
+                border-bottom-color: transparent;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .assets-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .requirement-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .asset-header {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .asset-score {
+                text-align: left;
+            }
+        }
+
+        /* Loading and transition states */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Print styles */
+        @media print {
+            .header, .domain-tabs { display: none; }
+            .metric-card, .asset-card, .requirement-card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>Domain-Centric Excellence Centers</h1>
+                    <p>GRC Portal - Governance, Risk & Compliance Management</p>
+                </div>
+                <div class="role-selector">
+                    <label for="role-select">Role:</label>
+                    <select id="role-select">
+                        <option value="Architect">Architect</option>
+                        <option value="Developer">Developer</option>
+                        <option value="Manager">Manager</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Domain Tabs -->
+    <nav class="domain-tabs">
+        <div class="container">
+            <div class="tabs-container">
+                <button class="domain-tab domain-security active" data-domain="security">Security</button>
+                <button class="domain-tab domain-architecture" data-domain="architecture">Architecture</button>
+                <button class="domain-tab domain-quality" data-domain="quality">Quality</button>
+                <button class="domain-tab domain-cross" data-domain="cross-domain">Cross-Domain</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div id="dashboard-content" class="dashboard fade-in">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mock data and application state
+        const GRCPortal = {
+            // Application state
+            state: {
+                activeTab: 'security',
+                selectedRole: 'Architect',
+                viewMode: 'list', // 'list' or 'grid'
+                mockData: {
+                    assets: [
+                        {
+                            id: 1,
+                            name: "Customer Portal API",
+                            type: "API",
+                            compliance: {
+                                security: 85,
+                                architecture: 78,
+                                quality: 92,
+                                overall: 85
+                            },
+                            assessments: 3,
+                            lastUpdated: "2024-08-15"
+                        },
+                        {
+                            id: 2,
+                            name: "Mobile Banking App",
+                            type: "Mobile App",
+                            compliance: {
+                                security: 95,
+                                architecture: 88,
+                                quality: 94,
+                                overall: 92
+                            },
+                            assessments: 5,
+                            lastUpdated: "2024-08-18"
+                        },
+                        {
+                            id: 3,
+                            name: "Analytics Dashboard",
+                            type: "Web App",
+                            compliance: {
+                                security: 72,
+                                architecture: 85,
+                                quality: 76,
+                                overall: 78
+                            },
+                            assessments: 2,
+                            lastUpdated: "2024-08-10"
+                        },
+                        {
+                            id: 4,
+                            name: "Payment Gateway",
+                            type: "API Service",
+                            compliance: {
+                                security: 98,
+                                architecture: 92,
+                                quality: 96,
+                                overall: 95
+                            },
+                            assessments: 8,
+                            lastUpdated: "2024-08-19"
+                        }
+                    ],
+                    domains: {
+                        security: {
+                            name: "Security",
+                            color: "security",
+                            requirements: [
+                                { id: 1, title: "Multi-Factor Authentication", status: "mandatory", compliance: 88 },
+                                { id: 2, title: "Data Encryption at Rest", status: "mandatory", compliance: 95 },
+                                { id: 3, title: "API Rate Limiting", status: "recommended", compliance: 72 },
+                                { id: 4, title: "Security Headers Implementation", status: "mandatory", compliance: 85 },
+                                { id: 5, title: "Input Validation & Sanitization", status: "mandatory", compliance: 90 },
+                                { id: 6, title: "Access Control Lists (ACL)", status: "mandatory", compliance: 82 },
+                                { id: 7, title: "Comprehensive Audit Logging", status: "mandatory", compliance: 78 },
+                                { id: 8, title: "Automated Vulnerability Scanning", status: "recommended", compliance: 65 },
+                                { id: 9, title: "Incident Response Plan", status: "mandatory", compliance: 88 },
+                                { id: 10, title: "Data Loss Prevention (DLP)", status: "recommended", compliance: 70 },
+                                { id: 11, title: "Network Segmentation", status: "mandatory", compliance: 85 },
+                                { id: 12, title: "Backup Data Encryption", status: "mandatory", compliance: 92 },
+                                { id: 13, title: "Session Management", status: "mandatory", compliance: 87 },
+                                { id: 14, title: "Real-time Security Monitoring", status: "recommended", compliance: 75 },
+                                { id: 15, title: "Regular Penetration Testing", status: "recommended", compliance: 60 }
+                            ]
+                        },
+                        architecture: {
+                            name: "Architecture",
+                            color: "architecture",
+                            requirements: [
+                                { id: 1, title: "API-First Design Approach", status: "mandatory", compliance: 85 },
+                                { id: 2, title: "Circuit Breaker Pattern", status: "recommended", compliance: 68 },
+                                { id: 3, title: "Microservices Architecture", status: "recommended", compliance: 75 },
+                                { id: 4, title: "Event-Driven Architecture", status: "recommended", compliance: 62 },
+                                { id: 5, title: "Technical Documentation Standards", status: "mandatory", compliance: 78 },
+                                { id: 6, title: "Design Pattern Consistency", status: "mandatory", compliance: 82 },
+                                { id: 7, title: "Technology Stack Alignment", status: "mandatory", compliance: 90 },
+                                { id: 8, title: "Performance Requirements Definition", status: "mandatory", compliance: 85 },
+                                { id: 9, title: "Scalability Planning", status: "recommended", compliance: 72 },
+                                { id: 10, title: "Integration Standards", status: "mandatory", compliance: 88 },
+                                { id: 11, title: "Code Review Process", status: "mandatory", compliance: 95 },
+                                { id: 12, title: "Deployment Automation", status: "recommended", compliance: 80 }
+                            ]
+                        },
+                        quality: {
+                            name: "Quality",
+                            color: "quality",
+                            requirements: [
+                                { id: 1, title: "Unit Test Coverage >80%", status: "mandatory", compliance: 72 },
+                                { id: 2, title: "Integration Testing Framework", status: "mandatory", compliance: 85 },
+                                { id: 3, title: "Performance Testing Suite", status: "mandatory", compliance: 78 },
+                                { id: 4, title: "Code Quality Gates", status: "mandatory", compliance: 88 },
+                                { id: 5, title: "Static Code Analysis", status: "mandatory", compliance: 92 },
+                                { id: 6, title: "Dependency Security Scanning", status: "mandatory", compliance: 85 },
+                                { id: 7, title: "Load Testing Implementation", status: "recommended", compliance: 65 },
+                                { id: 8, title: "User Acceptance Testing", status: "mandatory", compliance: 90 },
+                                { id: 9, title: "Accessibility Testing (WCAG)", status: "recommended", compliance: 55 },
+                                { id: 10, title: "Cross-browser Compatibility", status: "mandatory", compliance: 80 },
+                                { id: 11, title: "Mobile Responsiveness", status: "mandatory", compliance: 85 },
+                                { id: 12, title: "Error Handling & Recovery", status: "mandatory", compliance: 88 },
+                                { id: 13, title: "Logging Standards", status: "mandatory", compliance: 82 },
+                                { id: 14, title: "Monitoring & Alerting", status: "mandatory", compliance: 78 },
+                                { id: 15, title: "Documentation Quality", status: "mandatory", compliance: 75 },
+                                { id: 16, title: "Code Style Compliance", status: "mandatory", compliance: 95 },
+                                { id: 17, title: "Performance Benchmarking", status: "recommended", compliance: 70 },
+                                { id: 18, title: "Automated Regression Testing", status: "mandatory", compliance: 88 }
+                            ]
+                        }
+                    },
+                    roleContent: {
+                        Architect: {
+                            security: "Strategic security oversight and compliance framework design",
+                            architecture: "Technical architecture standards and design governance",
+                            quality: "Quality framework definition and technical excellence standards",
+                            "cross-domain": "Enterprise-wide governance and cross-domain alignment"
+                        },
+                        Developer: {
+                            security: "Daily security implementation and secure coding practices",
+                            architecture: "Architecture pattern implementation and code structure",
+                            quality: "Code quality implementation and testing execution",
+                            "cross-domain": "Cross-functional development and integration tasks"
+                        },
+                        Manager: {
+                            security: "Security risk management and compliance oversight",
+                            architecture: "Architecture roadmap and resource allocation",
+                            quality: "Quality metrics monitoring and team performance",
+                            "cross-domain": "Project portfolio management and resource coordination"
+                        }
+                    }
+                }
+            },
+
+            // Utility functions
+            utils: {
+                getDomainMetrics(domain) {
+                    if (domain === 'cross-domain') {
+                        const totalRequirements = Object.values(GRCPortal.state.mockData.domains)
+                            .reduce((sum, d) => sum + d.requirements.length, 0);
+                        const totalAssessments = GRCPortal.state.mockData.assets
+                            .reduce((sum, asset) => sum + asset.assessments, 0);
+                        const avgCompliance = Math.round(
+                            GRCPortal.state.mockData.assets
+                                .reduce((sum, asset) => sum + asset.compliance.overall, 0) / 
+                            GRCPortal.state.mockData.assets.length
+                        );
+                        
+                        return {
+                            totalRequirements,
+                            avgCompliance,
+                            totalAssessments,
+                            affectedAssets: GRCPortal.state.mockData.assets.length
+                        };
+                    }
+
+                    const domainData = GRCPortal.state.mockData.domains[domain];
+                    const mandatoryReqs = domainData.requirements.filter(req => req.status === 'mandatory').length;
+                    const avgCompliance = Math.round(
+                        domainData.requirements.reduce((sum, req) => sum + req.compliance, 0) / 
+                        domainData.requirements.length
+                    );
+                    const totalAssessments = GRCPortal.state.mockData.assets
+                        .reduce((sum, asset) => sum + asset.assessments, 0);
+                    
+                    return {
+                        totalRequirements: domainData.requirements.length,
+                        mandatoryRequirements: mandatoryReqs,
+                        avgCompliance,
+                        totalAssessments,
+                        affectedAssets: GRCPortal.state.mockData.assets.length
+                    };
+                },
+
+                getRelevantAssets(domain) {
+                    if (domain === 'cross-domain') {
+                        return GRCPortal.state.mockData.assets;
+                    }
+                    return GRCPortal.state.mockData.assets.map(asset => ({
+                        ...asset,
+                        compliance: {
+                            ...asset.compliance,
+                            current: asset.compliance[domain]
+                        }
+                    }));
+                },
+
+                getRoleContent(domain, role) {
+                    return GRCPortal.state.mockData.roleContent[role][domain] || 
+                           "Focus area for this role and domain";
+                }
+            },
+
+            // UI Components
+            components: {
+                createViewSelector() {
+                    return `
+                        <div class="view-selector">
+                            <span style="font-size: 14px; color: #64748b; margin-right: 8px;">View:</span>
+                            <div class="view-toggle">
+                                <button class="view-option ${GRCPortal.state.viewMode === 'list' ? 'active' : ''}" 
+                                        onclick="GRCPortal.handlers.handleViewChange('list')"
+                                        title="List View">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+                                    </svg>
+                                </button>
+                                <button class="view-option ${GRCPortal.state.viewMode === 'grid' ? 'active' : ''}" 
+                                        onclick="GRCPortal.handlers.handleViewChange('grid')"
+                                        title="Grid View">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                },
+                createMetricCard(title, value, subtitle, colorClass) {
+                    return `
+                        <div class="metric-card ${colorClass ? 'metric-' + colorClass : ''}">
+                            <div class="title">${title}</div>
+                            <div class="value">${value}</div>
+                            <div class="subtitle">${subtitle}</div>
+                        </div>
+                    `;
+                },
+
+                createRequirementCard(requirement, domain) {
+                    const statusClass = requirement.status === 'mandatory' ? 'status-mandatory' : 'status-recommended';
+                    const borderColor = {
+                        security: '#ef4444',
+                        architecture: '#3b82f6',
+                        quality: '#10b981'
+                    }[domain] || '#6b7280';
+
+                    return `
+                        <div class="requirement-card" style="border-left-color: ${borderColor}">
+                            <h4>${requirement.title}</h4>
+                            <div class="requirement-meta">
+                                <span class="status-badge ${statusClass}">${requirement.status}</span>
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-${domain}" style="width: ${requirement.compliance}%"></div>
+                                    </div>
+                                    <span class="progress-text">${requirement.compliance}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+
+                createAssetCard(asset, domain) {
+                    const compliance = domain && domain !== 'cross-domain' ? 
+                        asset.compliance.current : asset.compliance.overall;
+
+                    if (domain === 'cross-domain') {
+                        return this.createCrossDomainAssetCard(asset);
+                    }
+
+                    return `
+                        <div class="asset-card">
+                            <div class="asset-header">
+                                <div class="asset-info">
+                                    <h4>${asset.name}</h4>
+                                    <p>${asset.type} • ${asset.assessments} assessments</p>
+                                </div>
+                                <div class="asset-score">
+                                    <div class="score">${compliance}%</div>
+                                    <div class="label">Compliance</div>
+                                </div>
+                            </div>
+                            <div class="asset-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-${domain || 'cross'}" style="width: ${compliance}%"></div>
+                                </div>
+                            </div>
+                            <div class="asset-meta">Last updated: ${asset.lastUpdated}</div>
+                        </div>
+                    `;
+                },
+
+                createCrossDomainAssetCard(asset) {
+                    return `
+                        <div class="asset-card">
+                            <div class="asset-header">
+                                <div class="asset-info">
+                                    <h4>${asset.name}</h4>
+                                    <p>${asset.type} • ${asset.assessments} active assessments</p>
+                                </div>
+                                <div class="asset-score">
+                                    <div class="score">${asset.compliance.overall}%</div>
+                                    <div class="label">Overall</div>
+                                </div>
+                            </div>
+                            <div class="cross-domain-progress">
+                                <div class="domain-progress">
+                                    <span class="domain-name" style="color: #ef4444;">Security</span>
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill progress-security" style="width: ${asset.compliance.security}%"></div>
+                                        </div>
+                                    </div>
+                                    <span class="progress-text">${asset.compliance.security}%</span>
+                                </div>
+                                <div class="domain-progress">
+                                    <span class="domain-name" style="color: #3b82f6;">Architecture</span>
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill progress-architecture" style="width: ${asset.compliance.architecture}%"></div>
+                                        </div>
+                                    </div>
+                                    <span class="progress-text">${asset.compliance.architecture}%</span>
+                                </div>
+                                <div class="domain-progress">
+                                    <span class="domain-name" style="color: #10b981;">Quality</span>
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill progress-quality" style="width: ${asset.compliance.quality}%"></div>
+                                        </div>
+                                    </div>
+                                    <span class="progress-text">${asset.compliance.quality}%</span>
+                                </div>
+                            </div>
+                            <div class="asset-meta">Last updated: ${asset.lastUpdated}</div>
+                        </div>
+                    `;
+                },
+
+                createDomainDashboard(domain) {
+                    const domainData = GRCPortal.state.mockData.domains[domain];
+                    const metrics = GRCPortal.utils.getDomainMetrics(domain);
+                    const assets = GRCPortal.utils.getRelevantAssets(domain);
+                    const roleContent = GRCPortal.utils.getRoleContent(domain, GRCPortal.state.selectedRole);
+
+                    const metricsCards = [
+                        this.createMetricCard(
+                            "Total Requirements", 
+                            metrics.totalRequirements,
+                            `${metrics.mandatoryRequirements} mandatory`,
+                            domain
+                        ),
+                        this.createMetricCard(
+                            "Avg Compliance", 
+                            `${metrics.avgCompliance}%`,
+                            "across all requirements",
+                            domain
+                        ),
+                        this.createMetricCard(
+                            "Active Assessments", 
+                            metrics.totalAssessments,
+                            "in progress",
+                            domain
+                        ),
+                        this.createMetricCard(
+                            "Affected Assets", 
+                            metrics.affectedAssets,
+                            "applications/services",
+                            domain
+                        )
+                    ].join('');
+
+                    const requirementCards = domainData.requirements
+                        .map(req => this.createRequirementCard(req, domain))
+                        .join('');
+
+                    const assetCards = assets
+                        .map(asset => this.createAssetCard(asset, domain))
+                        .join('');
+
+                    return `
+                        <div class="role-focus domain-${domain}">
+                            <h2>${GRCPortal.state.selectedRole} Focus - ${domainData.name} Domain</h2>
+                            <p>${roleContent}</p>
+                        </div>
+
+                        <div class="metrics-grid">
+                            ${metricsCards}
+                        </div>
+
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h3>${domainData.name} Requirements</h3>
+                            </div>
+                            <div class="section-content">
+                                <div class="requirements-list">
+                                    ${requirementCards}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h3>Asset Compliance - ${domainData.name}</h3>
+                                ${this.createViewSelector()}
+                            </div>
+                            <div class="section-content">
+                                <div class="assets-${GRCPortal.state.viewMode}">
+                                    ${assetCards}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+
+                createCrossDomainDashboard() {
+                    const metrics = GRCPortal.utils.getDomainMetrics('cross-domain');
+                    const assets = GRCPortal.utils.getRelevantAssets('cross-domain');
+                    const roleContent = GRCPortal.utils.getRoleContent('cross-domain', GRCPortal.state.selectedRole);
+
+                    const metricsCards = [
+                        this.createMetricCard(
+                            "Total Requirements", 
+                            metrics.totalRequirements,
+                            "across all domains",
+                            'cross'
+                        ),
+                        this.createMetricCard(
+                            "Avg Compliance", 
+                            `${metrics.avgCompliance}%`,
+                            "portfolio-wide",
+                            'cross'
+                        ),
+                        this.createMetricCard(
+                            "Total Assessments", 
+                            metrics.totalAssessments,
+                            "active across domains",
+                            'cross'
+                        ),
+                        this.createMetricCard(
+                            "Portfolio Assets", 
+                            metrics.affectedAssets,
+                            "under management",
+                            'cross'
+                        )
+                    ].join('');
+
+                    const assetCards = assets
+                        .map(asset => this.createAssetCard(asset, 'cross-domain'))
+                        .join('');
+
+                    return `
+                        <div class="role-focus domain-cross">
+                            <h2>${GRCPortal.state.selectedRole} Focus - Cross-Domain View</h2>
+                            <p>${roleContent}</p>
+                        </div>
+
+                        <div class="metrics-grid">
+                            ${metricsCards}
+                        </div>
+
+                        <div class="content-section">
+                            <div class="section-header">
+                                <h3>Asset Portfolio - Cross-Domain Compliance</h3>
+                                ${this.createViewSelector()}
+                            </div>
+                            <div class="section-content">
+                                <div class="assets-${GRCPortal.state.viewMode}">
+                                    ${assetCards}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+
+            // Event handlers
+            handlers: {
+                handleTabClick(event) {
+                    const domain = event.target.getAttribute('data-domain');
+                    if (!domain || domain === GRCPortal.state.activeTab) return;
+
+                    // Update active tab state
+                    GRCPortal.state.activeTab = domain;
+
+                    // Update UI
+                    document.querySelectorAll('.domain-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    event.target.classList.add('active');
+
+                    // Render new content
+                    GRCPortal.render.renderDashboard();
+
+                    console.log(`Switched to ${domain} domain`);
+                },
+
+                handleRoleChange(event) {
+                    const role = event.target.value;
+                    if (!role || role === GRCPortal.state.selectedRole) return;
+
+                    // Update role state
+                    GRCPortal.state.selectedRole = role;
+
+                    // Re-render dashboard with new role content
+                    GRCPortal.render.renderDashboard();
+
+                    console.log(`Role changed to ${role}`);
+                },
+
+                handleViewChange(viewMode) {
+                    if (!viewMode || viewMode === GRCPortal.state.viewMode) return;
+                    // Update view mode state
+                    GRCPortal.state.viewMode = viewMode;
+                    // Re-render dashboard with new view mode
+                    GRCPortal.render.renderDashboard();
+                    console.log(`View changed to ${viewMode}`);
+                }
+            },
+
+            // Rendering functions
+            render: {
+                renderDashboard() {
+                    const content = document.getElementById('dashboard-content');
+                    
+                    // Add fade-out effect
+                    content.style.opacity = '0';
+                    content.style.transform = 'translateY(10px)';
+
+                    setTimeout(() => {
+                        // Generate new content
+                        const newContent = GRCPortal.state.activeTab === 'cross-domain' 
+                            ? GRCPortal.components.createCrossDomainDashboard()
+                            : GRCPortal.components.createDomainDashboard(GRCPortal.state.activeTab);
+
+                        content.innerHTML = newContent;
+
+                        // Add fade-in effect
+                        content.style.opacity = '1';
+                        content.style.transform = 'translateY(0)';
+
+                        console.log(`Dashboard rendered for ${GRCPortal.state.activeTab} domain, role: ${GRCPortal.state.selectedRole}`);
+                    }, 150);
+                }
+            },
+
+            // Initialization
+            init() {
+                console.log('Initializing GRC Portal - Domain-Centric Excellence Centers');
+                console.log('Mock data loaded:', Object.keys(this.state.mockData));
+
+                // Set up event listeners
+                document.querySelectorAll('.domain-tab').forEach(tab => {
+                    tab.addEventListener('click', this.handlers.handleTabClick);
+                });
+
+                document.getElementById('role-select').addEventListener('change', this.handlers.handleRoleChange);
+
+                // Initial render
+                this.render.renderDashboard();
+
+                // Add smooth transitions
+                const content = document.getElementById('dashboard-content');
+                content.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+                console.log('GRC Portal initialized successfully');
+            }
+        };
+
+        // Initialize the application when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => GRCPortal.init());
+        } else {
+            GRCPortal.init();
+        }
+    </script>
+</body>
+</html>

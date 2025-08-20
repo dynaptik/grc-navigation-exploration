@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standards Marketplace - GRC Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #f8fafc;
+            color: #1f2937;
+            line-height: 1.5;
+        }
+
+        /* Header Styles */
+        .marketplace-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-icon {
+            width: 3rem;
+            height: 3rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .brand-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .brand-text p {
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .role-selector {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .role-selector button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            background: transparent;
+            color: white;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .role-selector button.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .search-container {
+            max-width: 48rem;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.75rem;
+            color: white;
+            font-size: 1.125rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1.5rem;
+            height: 1.5rem;
+            stroke: rgba(255, 255, 255, 0.7);
+        }
+
+        .quick-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .filter-chip {
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.5rem;
+            background: transparent;
+            color: white;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .filter-chip.active {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .tab-list {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .tab-button {
+            padding: 1rem 0.5rem;
+            border: none;
+            background: none;
+            border-bottom: 2px solid transparent;
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-button:hover {
+            color: #374151;
+            border-bottom-color: #d1d5db;
+        }
+
+        .tab-button.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .tab-badge {
+            background: #f3f4f6;
+            color: #6b7280;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .content-layout {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        /* Sidebar */
+        .filters-sidebar {
+            width: 20rem;
+            flex-shrink: 0;
+        }
+
+        .filter-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            position: sticky;
+            top: 6rem;
+        }
+
+        .filter-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .filter-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item input {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+            border: 1px solid #d1d5db;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            font-size: 0.875rem;
+            color: #374151;
+            cursor: pointer;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 0.5rem;
+            background: #e5e7eb;
+            border-radius: 0.25rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .clear-filters {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+            color: #374151;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-filters:hover {
+            background: #f9fafb;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .results-count {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sort-select {
+            padding: 0.25rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* Standards Grid */
+        .standards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .standard-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .standard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: #d1d5db;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .category-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            margin-right: 0.25rem;
+        }
+
+        .rating-section {
+            text-align: right;
+        }
+
+        .stars {
+            color: #fbbf24;
+            margin-bottom: 0.25rem;
+        }
+
+        .rating-text {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-card {
+            text-align: center;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+
+        .metric-badge {
+            display: inline-block;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .adoption-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .complexity-high {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .complexity-medium {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .complexity-low {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .benefits-section {
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .benefit-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .benefit-tag {
+            padding: 0.25rem 0.5rem;
+            background: #dbeafe;
+            color: #1e40af;
+            font-size: 0.75rem;
+            border-radius: 0.25rem;
+        }
+
+        .prerequisites {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-primary:disabled {
+            background: #10b981;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+        }
+
+        .btn-secondary.active {
+            background: #fed7aa;
+            color: #ea580c;
+            border-color: #fdba74;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        .btn-icon:hover {
+            color: #6b7280;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-description {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .comparison-table th {
+            background: #f3f4f6;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .comparison-table tbody tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        /* Recommendations */
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .recommendation-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .recommendation-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .recommendation-icon {
+            width: 3rem;
+            height: 3rem;
+            background: #dbeafe;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .recommendation-content h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation-content p {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .recommendation-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+
+        .recommendation-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Adopted Standards */
+        .adopted-standards {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .adopted-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .adopted-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .adopted-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .adopted-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .adopted-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .progress-section {
+            margin-bottom: 1rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: #e5e7eb;
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #2563eb;
+            border-radius: 0.25rem;
+            transition: width 0.3s ease;
+        }
+
+        .adopted-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .adopted-date {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .adopted-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-link:hover {
+            color: #1d4ed8;
+        }
+
+        /* Analytics Footer */
+        .analytics-footer {
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 1rem;
+        }
+
+        .analytics-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .analytics-stats {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .analytics-button {
+            background: none;
+            border: none;
+            color: #2563eb;
+            cursor: pointer;
+        }
+
+        .analytics-button:hover {
+            color: #1d4ed8;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem 1.5rem;
+            background: #10b981;
+            color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-layout {
+                flex-direction: column;
+            }
+
+            .filters-sidebar {
+                width: 100%;
+            }
+
+            .standards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-top {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .quick-filters {
+                justify-content: center;
+            }
+
+            .tab-list {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Marketplace Header -->
+    <header class="marketplace-header">
+        <div class="header-content">
+            <div class="header-top">
+                <div class="header-brand">
+                    <div class="brand-icon">🛒</div>
+                    <div class="brand-text">
+                        <h1>Standards Marketplace</h1>
+                        <p>Discover, Compare, and Adopt Governance Standards</p>
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <div class="role-selector" id="role-selector">
+                        <button data-role="architect">🏗️ Architect</button>
+                        <button data-role="developer" class="active">👨‍💻 Developer</button>
+                        <button data-role="manager">👨‍💼 Manager</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="width: 2rem; height: 2rem; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 500;">
+                            M
+                        </div>
+                        <span style="font-size: 0.875rem; font-weight: 500;">Marcus Rodriguez</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="search-container">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input 
+                    type="text" 
+                    placeholder="Search standards by name, category, or technology..." 
+                    class="search-input"
+                    id="search-input"
+                >
+                
+                <div class="quick-filters" id="quick-filters">
+                    <button class="filter-chip" data-category="Security">Security</button>
+                    <button class="filter-chip" data-category="Architecture">Architecture</button>
+                    <button class="filter-chip" data-category="Quality">Quality</button>
+                    <button class="filter-chip" data-category="Compliance">Compliance</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <div class="nav-content">
+            <div class="tab-list">
+                <button class="tab-button active" data-tab="browse">
+                    🛍️ Browse Standards
+                    <span class="tab-badge" id="browse-count">52</span>
+                </button>
+                <button class="tab-button" data-tab="comparison">
+                    ⚖️ Compare
+                    <span class="tab-badge" id="comparison-count">0</span>
+                </button>
+                <button class="tab-button" data-tab="recommendations">
+                    💡 Recommendations
+                </button>
+                <button class="tab-button" data-tab="adopted">
+                    ✅ My Standards
+                    <span class="tab-badge" id="adopted-count">3</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Browse Standards Tab -->
+        <div class="tab-content active" id="browse-tab">
+            <div class="content-layout">
+                <!-- Filters Sidebar -->
+                <aside class="filters-sidebar">
+                    <div class="filter-card">
+                        <h3 class="filter-title">Filter Standards</h3>
+                        
+                        <!-- Category Filter -->
+                        <div class="filter-section">
+                            <label class="filter-label">Category</label>
+                            <div class="checkbox-group" id="category-filters">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="cat-security" value="Security">
+                                    <label for="cat-security">Security</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="cat-architecture" value="Architecture">
+                                    <label for="cat-architecture">Architecture</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="cat-quality" value="Quality">
+                                    <label for="cat-quality">Quality</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="cat-compliance" value="Compliance">
+                                    <label for="cat-compliance">Compliance</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Complexity Filter -->
+                        <div class="filter-section">
+                            <label class="filter-label">Implementation Complexity</label>
+                            <div class="checkbox-group" id="complexity-filters">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="comp-low" value="Low">
+                                    <label for="comp-low">Low</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="comp-medium" value="Medium">
+                                    <label for="comp-medium">Medium</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="comp-high" value="High">
+                                    <label for="comp-high">High</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Rating Filter -->
+                        <div class="filter-section">
+                            <label class="filter-label">Minimum Rating</label>
+                            <input type="range" class="range-slider" id="rating-filter" min="0" max="5" step="0.5" value="0">
+                            <div class="range-labels">
+                                <span>0</span>
+                                <span id="rating-value">0 stars</span>
+                                <span>5</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Adoption Rate Filter -->
+                        <div class="filter-section">
+                            <label class="filter-label">Min Adoption Rate</label>
+                            <input type="range" class="range-slider" id="adoption-filter" min="0" max="100" step="10" value="0">
+                            <div class="range-labels">
+                                <span>0%</span>
+                                <span id="adoption-value">0%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                        
+                        <button class="clear-filters" id="clear-filters">Clear All Filters</button>
+                    </div>
+                </aside>
+                
+                <!-- Standards Grid -->
+                <div class="content-area">
+                    <div class="content-header">
+                        <div class="results-count" id="results-count">52 standards found</div>
+                        <div class="sort-controls">
+                            <label style="font-size: 0.875rem; color: #374151;">Sort by:</label>
+                            <select class="sort-select" id="sort-select">
+                                <option value="rating">Rating</option>
+                                <option value="adoption">Adoption Rate</option>
+                                <option value="name">Name</option>
+                                <option value="complexity">Complexity</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="standards-grid" id="standards-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Tab -->
+        <div class="tab-content" id="comparison-tab">
+            <div style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Standard Comparison</h2>
+                <p style="color: #6b7280;">Compare selected standards side-by-side to make informed adoption decisions</p>
+            </div>
+            
+            <div id="comparison-content">
+                <div class="empty-state">
+                    <div class="empty-icon">⚖️</div>
+                    <h3 class="empty-title">No Standards to Compare</h3>
+                    <p class="empty-description">Add standards from the browse tab to start comparing</p>
+                    <button class="btn btn-primary" onclick="switchTab('browse')">Browse Standards</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Tab -->
+        <div class="tab-content" id="recommendations-tab">
+            <div style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Personalized Recommendations</h2>
+                <p style="color: #6b7280;">Standards recommended for your role and asset portfolio</p>
+            </div>
+            
+            <div class="recommendations-grid" id="recommendations-grid"></div>
+        </div>
+
+        <!-- My Standards Tab -->
+        <div class="tab-content" id="adopted-tab">
+            <div style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">My Adopted Standards</h2>
+                <p style="color: #6b7280;">Standards you've adopted and their implementation status</p>
+            </div>
+            
+            <div id="adopted-content">
+                <div class="adopted-standards" id="adopted-standards"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Analytics Footer -->
+    <footer class="analytics-footer">
+        <div class="analytics-content">
+            <div>Prototype Analytics:</div>
+            <div class="analytics-stats">
+                <span id="interaction-count">0 interactions</span>
+                <span id="action-count">0 unique actions</span>
+                <button class="analytics-button" onclick="viewAnalytics()">View Full Data</button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mock Data - Comprehensive Standards Marketplace
+        const mockStandards = [
+            // Security Standards
+            {
+                id: 'std-iso-27001',
+                name: 'ISO 27001 Information Security',
+                description: 'International standard for information security management systems providing a systematic approach to managing sensitive information.',
+                category: 'Security',
+                adoptionRate: 85,
+                complexity: 'High',
+                implementationTime: '6-12 months',
+                rating: 4.6,
+                reviews: 127,
+                benefits: ['Risk reduction', 'Regulatory compliance', 'Customer trust', 'Incident prevention'],
+                prerequisites: ['Security team', 'Management commitment', 'Risk assessment framework', 'Budget allocation']
+            },
+            {
+                id: 'std-mfa',
+                name: 'Multi-Factor Authentication',
+                description: 'Implementation standard for multi-factor authentication across all user-facing applications.',
+                category: 'Security',
+                adoptionRate: 92,
+                complexity: 'Medium',
+                implementationTime: '2-4 weeks',
+                rating: 4.8,
+                reviews: 89,
+                benefits: ['Enhanced security', 'Reduced breach risk', 'Compliance alignment', 'User trust'],
+                prerequisites: ['Identity provider', 'User training', 'Technical implementation']
+            },
+            {
+                id: 'std-encryption',
+                name: 'Data Encryption at Rest',
+                description: 'Comprehensive standard for encrypting sensitive data stored in databases and file systems.',
+                category: 'Security',
+                adoptionRate: 78,
+                complexity: 'Medium',
+                implementationTime: '3-6 weeks',
+                rating: 4.5,
+                reviews: 64,
+                benefits: ['Data protection', 'Compliance support', 'Breach mitigation', 'Regulatory alignment'],
+                prerequisites: ['Encryption tools', 'Key management', 'Performance testing']
+            },
+            {
+                id: 'std-api-security',
+                name: 'API Security Framework',
+                description: 'Complete security framework for REST APIs including authentication, authorization, and rate limiting.',
+                category: 'Security',
+                adoptionRate: 73,
+                complexity: 'Medium',
+                implementationTime: '4-8 weeks',
+                rating: 4.4,
+                reviews: 91,
+                benefits: ['API protection', 'Rate limiting', 'Threat prevention', 'Access control'],
+                prerequisites: ['API gateway', 'Security tools', 'Monitoring setup']
+            },
+            {
+                id: 'std-vulnerability-mgmt',
+                name: 'Vulnerability Management',
+                description: 'Systematic approach to identifying, evaluating, and mitigating security vulnerabilities.',
+                category: 'Security',
+                adoptionRate: 68,
+                complexity: 'High',
+                implementationTime: '8-12 weeks',
+                rating: 4.3,
+                reviews: 55,
+                benefits: ['Proactive security', 'Risk reduction', 'Compliance support', 'Incident prevention'],
+                prerequisites: ['Scanning tools', 'Security team', 'Remediation process']
+            },
+
+            // Architecture Standards
+            {
+                id: 'std-openapi',
+                name: 'OpenAPI Specification',
+                description: 'Standard for REST API documentation and design-first development approach.',
+                category: 'Architecture',
+                adoptionRate: 94,
+                complexity: 'Low',
+                implementationTime: '1-2 weeks',
+                rating: 4.9,
+                reviews: 156,
+                benefits: ['Better API design', 'Improved documentation', 'Tool ecosystem', 'Developer experience'],
+                prerequisites: ['API development experience', 'Documentation culture', 'Tool setup']
+            },
+            {
+                id: 'std-microservices',
+                name: 'Microservices Architecture',
+                description: 'Comprehensive framework for designing and implementing microservices-based systems.',
+                category: 'Architecture',
+                adoptionRate: 67,
+                complexity: 'High',
+                implementationTime: '3-6 months',
+                rating: 4.2,
+                reviews: 143,
+                benefits: ['Scalability', 'Technology diversity', 'Team autonomy', 'Fault isolation'],
+                prerequisites: ['Container platform', 'Service mesh', 'Monitoring tools', 'DevOps practices']
+            },
+            {
+                id: 'std-event-driven',
+                name: 'Event-Driven Architecture',
+                description: 'Framework for implementing asynchronous, event-based communication patterns.',
+                category: 'Architecture',
+                adoptionRate: 56,
+                complexity: 'High',
+                implementationTime: '4-8 weeks',
+                rating: 4.1,
+                reviews: 78,
+                benefits: ['Loose coupling', 'Scalability', 'Real-time processing', 'Resilience'],
+                prerequisites: ['Message broker', 'Event schema design', 'Monitoring setup']
+            },
+            {
+                id: 'std-api-first',
+                name: 'API-First Design',
+                description: 'Methodology for designing APIs before implementation to ensure better integration.',
+                category: 'Architecture',
+                adoptionRate: 81,
+                complexity: 'Medium',
+                implementationTime: '2-4 weeks',
+                rating: 4.7,
+                reviews: 102,
+                benefits: ['Better integration', 'Parallel development', 'Consistent design', 'Reusability'],
+                prerequisites: ['Design tools', 'Team training', 'Review process']
+            },
+            {
+                id: 'std-cloud-native',
+                name: 'Cloud-Native Architecture',
+                description: 'Principles and patterns for building applications optimized for cloud environments.',
+                category: 'Architecture',
+                adoptionRate: 72,
+                complexity: 'High',
+                implementationTime: '2-4 months',
+                rating: 4.4,
+                reviews: 89,
+                benefits: ['Cloud optimization', 'Auto-scaling', 'Cost efficiency', 'Resilience'],
+                prerequisites: ['Cloud platform', 'Container expertise', 'DevOps pipeline']
+            },
+
+            // Quality Standards
+            {
+                id: 'std-testing-pyramid',
+                name: 'Testing Pyramid Framework',
+                description: 'Comprehensive testing strategy with unit, integration, and end-to-end test layers.',
+                category: 'Quality',
+                adoptionRate: 88,
+                complexity: 'Medium',
+                implementationTime: '4-6 weeks',
+                rating: 4.6,
+                reviews: 134,
+                benefits: ['Better test coverage', 'Fast feedback', 'Quality assurance', 'Bug prevention'],
+                prerequisites: ['Testing frameworks', 'CI/CD pipeline', 'Team training']
+            },
+            {
+                id: 'std-code-quality',
+                name: 'Code Quality Gates',
+                description: 'Automated code quality checks including static analysis, security scans, and coverage metrics.',
+                category: 'Quality',
+                adoptionRate: 91,
+                complexity: 'Medium',
+                implementationTime: '2-3 weeks',
+                rating: 4.7,
+                reviews: 167,
+                benefits: ['Consistent quality', 'Early bug detection', 'Technical debt reduction', 'Maintainability'],
+                prerequisites: ['Static analysis tools', 'CI/CD integration', 'Quality metrics']
+            },
+            {
+                id: 'std-performance-testing',
+                name: 'Performance Testing Standard',
+                description: 'Framework for load, stress, and performance testing of applications.',
+                category: 'Quality',
+                adoptionRate: 74,
+                complexity: 'Medium',
+                implementationTime: '3-5 weeks',
+                rating: 4.3,
+                reviews: 93,
+                benefits: ['Performance assurance', 'Scalability validation', 'Bottleneck identification', 'SLA compliance'],
+                prerequisites: ['Testing tools', 'Performance metrics', 'Environment setup']
+            },
+            {
+                id: 'std-monitoring',
+                name: 'Application Monitoring',
+                description: 'Comprehensive monitoring and observability framework for production applications.',
+                category: 'Quality',
+                adoptionRate: 86,
+                complexity: 'Medium',
+                implementationTime: '3-4 weeks',
+                rating: 4.5,
+                reviews: 112,
+                benefits: ['System visibility', 'Proactive issue detection', 'Performance insights', 'SLA monitoring'],
+                prerequisites: ['APM tools', 'Logging infrastructure', 'Alert configuration']
+            },
+            {
+                id: 'std-accessibility',
+                name: 'Web Accessibility (WCAG)',
+                description: 'Implementation guide for Web Content Accessibility Guidelines to ensure inclusive design.',
+                category: 'Quality',
+                adoptionRate: 63,
+                complexity: 'Medium',
+                implementationTime: '4-8 weeks',
+                rating: 4.4,
+                reviews: 87,
+                benefits: ['Inclusive design', 'Legal compliance', 'User experience', 'Market expansion'],
+                prerequisites: ['Accessibility tools', 'Design guidelines', 'User testing']
+            },
+
+            // Compliance Standards
+            {
+                id: 'std-gdpr',
+                name: 'GDPR Compliance Framework',
+                description: 'Complete framework for implementing General Data Protection Regulation requirements.',
+                category: 'Compliance',
+                adoptionRate: 79,
+                complexity: 'High',
+                implementationTime: '3-6 months',
+                rating: 4.2,
+                reviews: 95,
+                benefits: ['Legal compliance', 'Data protection', 'Privacy by design', 'Customer trust'],
+                prerequisites: ['Legal review', 'Data mapping', 'Privacy tools', 'Staff training']
+            },
+            {
+                id: 'std-sox',
+                name: 'SOX IT Controls',
+                description: 'IT control framework for Sarbanes-Oxley compliance in financial reporting systems.',
+                category: 'Compliance',
+                adoptionRate: 71,
+                complexity: 'High',
+                implementationTime: '4-8 months',
+                rating: 4.0,
+                reviews: 67,
+                benefits: ['Financial compliance', 'Audit readiness', 'Risk management', 'Process control'],
+                prerequisites: ['Audit framework', 'Control documentation', 'Testing procedures']
+            },
+            {
+                id: 'std-hipaa',
+                name: 'HIPAA Security Rule',
+                description: 'Healthcare data security and privacy requirements implementation guide.',
+                category: 'Compliance',
+                adoptionRate: 82,
+                complexity: 'High',
+                implementationTime: '2-4 months',
+                rating: 4.3,
+                reviews: 74,
+                benefits: ['Healthcare compliance', 'Patient privacy', 'Data security', 'Legal protection'],
+                prerequisites: ['Risk assessment', 'Security controls', 'Staff training', 'Audit procedures']
+            },
+            {
+                id: 'std-pci-dss',
+                name: 'PCI DSS Compliance',
+                description: 'Payment Card Industry Data Security Standard for secure payment processing.',
+                category: 'Compliance',
+                adoptionRate: 88,
+                complexity: 'High',
+                implementationTime: '3-5 months',
+                rating: 4.4,
+                reviews: 103,
+                benefits: ['Payment security', 'Compliance certification', 'Customer trust', 'Fraud prevention'],
+                prerequisites: ['Security assessment', 'Network segmentation', 'Monitoring tools']
+            }
+        ];
+
+        const mockUsers = {
+            architect: { name: 'Sarah Chen', role: 'architect' },
+            developer: { name: 'Marcus Rodriguez', role: 'developer' },
+            manager: { name: 'Lisa Thompson', role: 'manager' }
+        };
+
+        // Application State
+        let currentRole = 'developer';
+        let activeTab = 'browse';
+        let searchQuery = '';
+        let sortBy = 'rating';
+        let filters = {
+            categories: [],
+            complexity: [],
+            minRating: 0,
+            minAdoption: 0
+        };
+        let comparisonList = [];
+        let adoptedStandards = ['std-openapi', 'std-mfa', 'std-testing-pyramid'];
+        let filteredStandards = [...mockStandards];
+
+        // Analytics
+        let analytics = {
+            interactions: [],
+            pathTaken: []
+        };
+
+        // Utility Functions
+        function trackInteraction(action, data = {}) {
+            analytics.interactions.push({
+                timestamp: new Date().toISOString(),
+                action,
+                data
+            });
+            updateAnalyticsFooter();
+        }
+
+        function trackNavigation(path) {
+            analytics.pathTaken.push({
+                timestamp: new Date().toISOString(),
+                path
+            });
+        }
+
+        function getCategoryColor(category) {
+            const colors = {
+                Security: '#ef4444',
+                Architecture: '#3b82f6',
+                Quality: '#10b981',
+                Compliance: '#8b5cf6'
+            };
+            return colors[category] || '#6b7280';
+        }
+
+        function renderStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            
+            return '★'.repeat(fullStars) + 
+                   (hasHalfStar ? '☆' : '') + 
+                   '☆'.repeat(emptyStars);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast show';
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; margin-left: 1rem; cursor: pointer;">✕</button>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Filter and Search Functions
+        function filterStandards() {
+            filteredStandards = mockStandards.filter(standard => {
+                // Search query filter
+                const matchesSearch = !searchQuery || 
+                    standard.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    standard.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    standard.category.toLowerCase().includes(searchQuery.toLowerCase());
+
+                // Category filter
+                const matchesCategory = filters.categories.length === 0 || 
+                    filters.categories.includes(standard.category);
+
+                // Complexity filter
+                const matchesComplexity = filters.complexity.length === 0 || 
+                    filters.complexity.includes(standard.complexity);
+
+                // Rating filter
+                const matchesRating = standard.rating >= filters.minRating;
+
+                // Adoption filter
+                const matchesAdoption = standard.adoptionRate >= filters.minAdoption;
+
+                return matchesSearch && matchesCategory && matchesComplexity && matchesRating && matchesAdoption;
+            });
+
+            sortStandards();
+            renderStandardsGrid();
+            updateResultsCount();
+            trackInteraction('standards_filter', { 
+                query: searchQuery, 
+                filters: filters,
+                resultCount: filteredStandards.length 
+            });
+        }
+
+        function sortStandards() {
+            filteredStandards.sort((a, b) => {
+                switch (sortBy) {
+                    case 'rating':
+                        return b.rating - a.rating;
+                    case 'adoption':
+                        return b.adoptionRate - a.adoptionRate;
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'complexity':
+                        const complexityOrder = { 'Low': 1, 'Medium': 2, 'High': 3 };
+                        return complexityOrder[a.complexity] - complexityOrder[b.complexity];
+                    default:
+                        return 0;
+                }
+            });
+        }
+
+        function clearFilters() {
+            filters = {
+                categories: [],
+                complexity: [],
+                minRating: 0,
+                minAdoption: 0
+            };
+            searchQuery = '';
+            document.getElementById('search-input').value = '';
+            
+            // Clear checkboxes
+            document.querySelectorAll('#category-filters input, #complexity-filters input').forEach(cb => {
+                cb.checked = false;
+            });
+            
+            // Reset sliders
+            document.getElementById('rating-filter').value = 0;
+            document.getElementById('adoption-filter').value = 0;
+            document.getElementById('rating-value').textContent = '0 stars';
+            document.getElementById('adoption-value').textContent = '0%';
+            
+            // Clear quick filter chips
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            
+            filterStandards();
+            trackInteraction('filters_cleared');
+        }
+
+        function updateResultsCount() {
+            document.getElementById('results-count').textContent = `${filteredStandards.length} standards found`;
+            document.getElementById('browse-count').textContent = filteredStandards.length;
+        }
+
+        // Render Functions
+        function renderStandardsGrid() {
+            const container = document.getElementById('standards-grid');
+            
+            container.innerHTML = filteredStandards.map(standard => `
+                <div class="standard-card" onclick="viewStandardDetail('${standard.id}')">
+                    <div class="card-content">
+                        <div class="card-header">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <h3 class="card-title">${standard.name}</h3>
+                                    ${standard.adoptionRate >= 80 ? '<span style="padding: 0.25rem 0.5rem; background: #dcfce7; color: #166534; font-size: 0.75rem; border-radius: 9999px; font-weight: 500;">Popular</span>' : ''}
+                                </div>
+                                <p class="card-description">${standard.description}</p>
+                                <div class="card-meta">
+                                    <span style="display: flex; align-items: center;">
+                                        <span class="category-dot" style="background: ${getCategoryColor(standard.category)};"></span>
+                                        ${standard.category}
+                                    </span>
+                                    <span>${standard.implementationTime}</span>
+                                </div>
+                            </div>
+                            <div class="rating-section">
+                                <div class="stars">${renderStars(standard.rating)}</div>
+                                <div class="rating-text">${standard.rating.toFixed(1)} (${standard.reviews})</div>
+                            </div>
+                        </div>
+
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-badge adoption-badge">${standard.adoptionRate}% Adoption</div>
+                                <div class="metric-label">Industry Rate</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-badge complexity-${standard.complexity.toLowerCase()}">${standard.complexity}</div>
+                                <div class="metric-label">Complexity</div>
+                            </div>
+                        </div>
+
+                        <div class="benefits-section">
+                            <div class="section-title">Key Benefits</div>
+                            <div class="benefit-tags">
+                                ${standard.benefits.slice(0, 2).map(benefit => `
+                                    <span class="benefit-tag">${benefit}</span>
+                                `).join('')}
+                            </div>
+                            <div class="section-title">Prerequisites</div>
+                            <div class="prerequisites">${standard.prerequisites.slice(0, 2).join(', ')}</div>
+                        </div>
+
+                        <div class="card-actions" onclick="event.stopPropagation()">
+                            ${adoptedStandards.includes(standard.id) ? `
+                                <button class="btn btn-primary" disabled>✓ Adopted</button>
+                            ` : `
+                                <button class="btn btn-primary" onclick="adoptStandard('${standard.id}')">Adopt Standard</button>
+                            `}
+                            <button class="btn btn-secondary ${comparisonList.includes(standard.id) ? 'active' : ''}" 
+                                    onclick="toggleComparison('${standard.id}')">
+                                ${comparisonList.includes(standard.id) ? 'Remove' : 'Compare'}
+                            </button>
+                            <button class="btn-icon" onclick="bookmarkStandard('${standard.id}')">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderComparisonTable() {
+            const container = document.getElementById('comparison-content');
+            
+            if (comparisonList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚖️</div>
+                        <h3 class="empty-title">No Standards to Compare</h3>
+                        <p class="empty-description">Add standards from the browse tab to start comparing</p>
+                        <button class="btn btn-primary" onclick="switchTab('browse')">Browse Standards</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const comparisonStandards = mockStandards.filter(s => comparisonList.includes(s.id));
+
+            container.innerHTML = `
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Criteria</th>
+                                ${comparisonStandards.map(standard => `
+                                    <th style="min-width: 200px;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                                            ${standard.name}
+                                            <button onclick="removeFromComparison('${standard.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; margin-left: 0.5rem;">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </th>
+                                `).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Rating</strong></td>
+                                ${comparisonStandards.map(standard => `
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <span style="color: #fbbf24;">${renderStars(standard.rating)}</span>
+                                            <span>${standard.rating.toFixed(1)}</span>
+                                        </div>
+                                    </td>
+                                `).join('')}
+                            </tr>
+                            <tr>
+                                <td><strong>Adoption Rate</strong></td>
+                                ${comparisonStandards.map(standard => `
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <div style="flex: 1; height: 0.5rem; background: #e5e7eb; border-radius: 0.25rem; overflow: hidden;">
+                                                <div style="height: 100%; background: #10b981; width: ${standard.adoptionRate}%;"></div>
+                                            </div>
+                                            <span>${standard.adoptionRate}%</span>
+                                        </div>
+                                    </td>
+                                `).join('')}
+                            </tr>
+                            <tr>
+                                <td><strong>Complexity</strong></td>
+                                ${comparisonStandards.map(standard => `
+                                    <td>
+                                        <span class="metric-badge complexity-${standard.complexity.toLowerCase()}">${standard.complexity}</span>
+                                    </td>
+                                `).join('')}
+                            </tr>
+                            <tr>
+                                <td><strong>Implementation Time</strong></td>
+                                ${comparisonStandards.map(standard => `
+                                    <td>${standard.implementationTime}</td>
+                                `).join('')}
+                            </tr>
+                            <tr>
+                                <td><strong>Key Benefits</strong></td>
+                                ${comparisonStandards.map(standard => `
+                                    <td>
+                                        <ul style="margin: 0; padding-left: 1rem; font-size: 0.875rem;">
+                                            ${standard.benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+                                        </ul>
+                                    </td>
+                                `).join('')}
+                            </tr>
+                            <tr>
+                                <td><strong>Prerequisites</strong></td>
+                                ${comparisonStandards.map(standard => `
+                                    <td>
+                                        <ul style="margin: 0; padding-left: 1rem; font-size: 0.875rem;">
+                                            ${standard.prerequisites.map(req => `<li>${req}</li>`).join('')}
+                                        </ul>
+                                    </td>
+                                `).join('')}
+                            </tr>
+                            <tr>
+                                <td><strong>Action</strong></td>
+                                ${comparisonStandards.map(standard => `
+                                    <td>
+                                        ${adoptedStandards.includes(standard.id) ? `
+                                            <button class="btn btn-primary" disabled style="width: 100%;">✓ Adopted</button>
+                                        ` : `
+                                            <button class="btn btn-primary" onclick="adoptStandard('${standard.id}')" style="width: 100%;">Adopt</button>
+                                        `}
+                                    </td>
+                                `).join('')}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderRecommendations() {
+            const container = document.getElementById('recommendations-grid');
+            const recommendations = getRecommendationsForRole(currentRole);
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <div class="recommendation-icon">${rec.icon}</div>
+                        <div class="recommendation-content">
+                            <h3>${rec.title}</h3>
+                            <p>${rec.description}</p>
+                            <div class="recommendation-meta">
+                                <span>Match: ${rec.matchScore}%</span>
+                                <span>Priority: ${rec.priority}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recommendation-actions">
+                        <button class="btn btn-primary" onclick="learnMore('${rec.standardId}')">Learn More</button>
+                        <button class="btn btn-secondary" onclick="dismissRecommendation('${rec.standardId}')">Maybe Later</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAdoptedStandards() {
+            const container = document.getElementById('adopted-standards');
+            
+            if (adoptedStandards.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3 class="empty-title">No Adopted Standards</h3>
+                        <p class="empty-description">Browse and adopt standards to track your implementation progress</p>
+                        <button class="btn btn-primary" onclick="switchTab('browse')">Browse Standards</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const adopted = mockStandards.filter(s => adoptedStandards.includes(s.id));
+
+            container.innerHTML = adopted.map(standard => {
+                const progress = Math.floor(Math.random() * 30) + 70; // Mock progress
+                return `
+                    <div class="adopted-card">
+                        <div class="adopted-header">
+                            <div>
+                                <h3 class="adopted-title">${standard.name}</h3>
+                                <p class="adopted-description">${standard.description}</p>
+                            </div>
+                            <span class="adopted-badge">✓ Adopted</span>
+                        </div>
+                        
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <span style="color: #6b7280;">Implementation Progress</span>
+                                <span style="font-weight: 500;">${progress}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="adopted-footer">
+                            <div class="adopted-date">Adopted on ${new Date().toLocaleDateString()}</div>
+                            <div class="adopted-actions">
+                                <button class="btn-link" onclick="viewProgress('${standard.id}')">View Progress</button>
+                                <button class="btn-icon">
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getRecommendationsForRole(role) {
+            const recommendations = {
+                developer: [
+                    {
+                        title: 'Automated Testing Standards',
+                        description: 'Implement comprehensive testing frameworks for better code quality and faster development cycles.',
+                        icon: '🧪',
+                        matchScore: 95,
+                        priority: 'High',
+                        standardId: 'std-testing-pyramid'
+                    },
+                    {
+                        title: 'Code Quality Gates',
+                        description: 'Establish automated quality checks to maintain high code standards across your projects.',
+                        icon: '📊',
+                        matchScore: 88,
+                        priority: 'Medium',
+                        standardId: 'std-code-quality'
+                    },
+                    {
+                        title: 'API Security Framework',
+                        description: 'Secure your APIs with comprehensive authentication and authorization controls.',
+                        icon: '🔐',
+                        matchScore: 82,
+                        priority: 'High',
+                        standardId: 'std-api-security'
+                    }
+                ],
+                architect: [
+                    {
+                        title: 'Microservices Architecture',
+                        description: 'Design scalable, maintainable systems with proven microservices patterns.',
+                        icon: '🏗️',
+                        matchScore: 92,
+                        priority: 'High',
+                        standardId: 'std-microservices'
+                    },
+                    {
+                        title: 'Cloud-Native Architecture',
+                        description: 'Optimize your applications for cloud environments with modern architectural patterns.',
+                        icon: '☁️',
+                        matchScore: 87,
+                        priority: 'Medium',
+                        standardId: 'std-cloud-native'
+                    },
+                    {
+                        title: 'Event-Driven Architecture',
+                        description: 'Build responsive, scalable systems with asynchronous event processing.',
+                        icon: '⚡',
+                        matchScore: 79,
+                        priority: 'Medium',
+                        standardId: 'std-event-driven'
+                    }
+                ],
+                manager: [
+                    {
+                        title: 'GDPR Compliance Framework',
+                        description: 'Ensure data protection compliance with comprehensive privacy controls.',
+                        icon: '🛡️',
+                        matchScore: 90,
+                        priority: 'High',
+                        standardId: 'std-gdpr'
+                    },
+                    {
+                        title: 'ISO 27001 Security Management',
+                        description: 'Implement enterprise-grade security management system.',
+                        icon: '🔒',
+                        matchScore: 85,
+                        priority: 'High',
+                        standardId: 'std-iso-27001'
+                    },
+                    {
+                        title: 'Application Monitoring',
+                        description: 'Gain visibility into system performance and user experience.',
+                        icon: '📈',
+                        matchScore: 78,
+                        priority: 'Medium',
+                        standardId: 'std-monitoring'
+                    }
+                ]
+            };
+            return recommendations[role] || [];
+        }
+
+        function updateAnalyticsFooter() {
+            const uniqueActions = [...new Set(analytics.interactions.map(i => i.action))].length;
+            document.getElementById('interaction-count').textContent = `${analytics.interactions.length} interactions`;
+            document.getElementById('action-count').textContent = `${uniqueActions} unique actions`;
+        }
+
+        // Action Functions
+        function switchTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Show/hide content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            activeTab = tabName;
+            
+            // Render content for active tab
+            if (tabName === 'comparison') {
+                renderComparisonTable();
+            } else if (tabName === 'recommendations') {
+                renderRecommendations();
+            } else if (tabName === 'adopted') {
+                renderAdoptedStandards();
+            }
+
+            trackInteraction('tab_switch', { tab: tabName });
+        }
+
+        function adoptStandard(standardId) {
+            if (!adoptedStandards.includes(standardId)) {
+                adoptedStandards.push(standardId);
+                const standard = mockStandards.find(s => s.id === standardId);
+                showToast(`${standard.name} has been adopted!`);
+                
+                // Re-render affected sections
+                renderStandardsGrid();
+                renderAdoptedStandards();
+                document.getElementById('adopted-count').textContent = adoptedStandards.length;
+                
+                trackInteraction('standard_adopt', { standardId });
+            }
+        }
+
+        function toggleComparison(standardId) {
+            if (comparisonList.includes(standardId)) {
+                comparisonList = comparisonList.filter(id => id !== standardId);
+            } else {
+                comparisonList.push(standardId);
+            }
+            
+            renderStandardsGrid();
+            renderComparisonTable();
+            document.getElementById('comparison-count').textContent = comparisonList.length;
+            
+            trackInteraction('comparison_toggle', { standardId, inComparison: comparisonList.includes(standardId) });
+        }
+
+        function removeFromComparison(standardId) {
+            comparisonList = comparisonList.filter(id => id !== standardId);
+            renderStandardsGrid();
+            renderComparisonTable();
+            document.getElementById('comparison-count').textContent = comparisonList.length;
+            trackInteraction('comparison_remove', { standardId });
+        }
+
+        function bookmarkStandard(standardId) {
+            trackInteraction('bookmark_standard', { standardId });
+            showToast('Standard bookmarked for later review');
+        }
+
+        function viewStandardDetail(standardId) {
+            trackInteraction('view_standard_detail', { standardId });
+            // In a real app, this would navigate to detail page
+            console.log('View detail for standard:', standardId);
+        }
+
+        function learnMore(standardId) {
+            trackInteraction('learn_more', { standardId });
+            // Switch to browse tab and highlight the standard
+            switchTab('browse');
+        }
+
+        function dismissRecommendation(standardId) {
+            trackInteraction('dismiss_recommendation', { standardId });
+            showToast('Recommendation dismissed');
+        }
+
+        function viewProgress(standardId) {
+            trackInteraction('view_progress', { standardId });
+            // In a real app, this would show detailed progress
+            console.log('View progress for standard:', standardId);
+        }
+
+        function viewAnalytics() {
+            console.log('Analytics Data:', analytics);
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Role selector
+            document.querySelectorAll('.role-selector button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const newRole = e.target.dataset.role;
+                    if (newRole !== currentRole) {
+                        // Update UI
+                        document.querySelectorAll('.role-selector button').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        
+                        // Update state
+                        currentRole = newRole;
+                        
+                        // Update user name
+                        const userNameElement = document.querySelector('.user-info span:last-child');
+                        userNameElement.textContent = mockUsers[newRole].name;
+                        
+                        // Re-render recommendations
+                        if (activeTab === 'recommendations') {
+                            renderRecommendations();
+                        }
+                        
+                        trackInteraction('role_change', { role: newRole });
+                    }
+                });
+            });
+
+            // Tab navigation
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const tabName = e.currentTarget.dataset.tab;
+                    switchTab(tabName);
+                });
+            });
+
+            // Search input
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                searchQuery = e.target.value.trim();
+                filterStandards();
+            });
+
+            // Quick filter chips
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.addEventListener('click', (e) => {
+                    const category = e.target.dataset.category;
+                    chip.classList.toggle('active');
+                    
+                    if (filters.categories.includes(category)) {
+                        filters.categories = filters.categories.filter(c => c !== category);
+                    } else {
+                        filters.categories.push(category);
+                    }
+                    
+                    // Update corresponding checkbox
+                    const checkbox = document.querySelector(`#category-filters input[value="${category}"]`);
+                    if (checkbox) {
+                        checkbox.checked = filters.categories.includes(category);
+                    }
+                    
+                    filterStandards();
+                });
+            });
+
+            // Category checkboxes
+            document.querySelectorAll('#category-filters input').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const category = e.target.value;
+                    if (e.target.checked) {
+                        if (!filters.categories.includes(category)) {
+                            filters.categories.push(category);
+                        }
+                    } else {
+                        filters.categories = filters.categories.filter(c => c !== category);
+                    }
+                    
+                    // Update corresponding quick filter chip
+                    const chip = document.querySelector(`[data-category="${category}"]`);
+                    if (chip) {
+                        chip.classList.toggle('active', e.target.checked);
+                    }
+                    
+                    filterStandards();
+                });
+            });
+
+            // Complexity checkboxes
+            document.querySelectorAll('#complexity-filters input').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const complexity = e.target.value;
+                    if (e.target.checked) {
+                        if (!filters.complexity.includes(complexity)) {
+                            filters.complexity.push(complexity);
+                        }
+                    } else {
+                        filters.complexity = filters.complexity.filter(c => c !== complexity);
+                    }
+                    filterStandards();
+                });
+            });
+
+            // Rating slider
+            document.getElementById('rating-filter').addEventListener('input', (e) => {
+                filters.minRating = parseFloat(e.target.value);
+                document.getElementById('rating-value').textContent = `${filters.minRating} stars`;
+                filterStandards();
+            });
+
+            // Adoption slider
+            document.getElementById('adoption-filter').addEventListener('input', (e) => {
+                filters.minAdoption = parseInt(e.target.value);
+                document.getElementById('adoption-value').textContent = `${filters.minAdoption}%`;
+                filterStandards();
+            });
+
+            // Sort select
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                sortBy = e.target.value;
+                sortStandards();
+                renderStandardsGrid();
+                trackInteraction('sort_change', { sortBy });
+            });
+
+            // Clear filters button
+            document.getElementById('clear-filters').addEventListener('click', clearFilters);
+        }
+
+        // Initialize Application
+        function initializeApp() {
+            setupEventListeners();
+            filterStandards();
+            renderRecommendations();
+            renderAdoptedStandards();
+            updateAnalyticsFooter();
+            trackNavigation('standards-marketplace-prototype');
+        }
+
+        // Start the application
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>

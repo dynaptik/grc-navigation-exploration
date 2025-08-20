@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset-Driven Compliance Hub - GRC Portal</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8fafc;
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .header-title .subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Search and user section */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 300px;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #f8fafc;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-selector {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Asset Context Bar */
+        .asset-context-bar {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            padding: 16px 0;
+        }
+
+        .asset-context-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-asset {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .asset-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .asset-type {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .asset-metrics {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            font-size: 14px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .metric-label {
+            opacity: 0.8;
+            font-size: 12px;
+        }
+
+        .switch-asset-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .switch-asset-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Asset Portfolio Overlay */
+        .asset-portfolio-overlay {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 24px 0;
+        }
+
+        .portfolio-header {
+            margin-bottom: 24px;
+        }
+
+        .portfolio-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .portfolio-description {
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        .portfolio-filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .filter-select {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        /* Asset Grid */
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .asset-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .asset-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #d1d5db;
+        }
+
+        .asset-card.selected {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .asset-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .asset-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+        }
+
+        .asset-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .asset-info .meta {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .compliance-score {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+        }
+
+        .score-circle {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        .score-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .risk-summary {
+            text-align: right;
+        }
+
+        .risk-count {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ef4444;
+        }
+
+        .risk-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tabs-container {
+            display: flex;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 16px 24px;
+            border: none;
+            background: none;
+            border-bottom: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-button.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab-button:hover:not(.active) {
+            color: #374151;
+            background: #f9fafb;
+        }
+
+        .tab-badge {
+            background: #f3f4f6;
+            color: #6b7280;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .tab-button.active .tab-badge {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 32px 0;
+            min-height: 60vh;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .section-description {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        /* Card Layout */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        /* Requirements List */
+        .requirements-container {
+            space-y: 24px;
+        }
+
+        .domain-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .domain-header {
+            background: #f8fafc;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .domain-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .requirement-count {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .requirements-list {
+            padding: 24px;
+        }
+
+        .requirement-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+
+        .requirement-item:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+
+        .requirement-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .requirement-id {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .requirement-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 8px 0;
+        }
+
+        .requirement-description {
+            color: #6b7280;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .requirement-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .requirement-tags {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tag {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .tag.mandatory {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .tag.recommended {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .relevance-score {
+            font-size: 12px;
+            color: #059669;
+            font-weight: 600;
+        }
+
+        /* Assessment Cards */
+        .assessment-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .assessment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .assessment-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .assessment-description {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.in-progress {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.not-started {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .assessment-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            text-align: center;
+        }
+
+        .metric-card .label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .metric-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+
+        /* Comparison Grid */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .comparison-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .comparison-asset-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto 16px;
+        }
+
+        .comparison-metrics {
+            margin-top: 20px;
+            space-y: 12px;
+        }
+
+        .comparison-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .metric-bar {
+            flex: 1;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+        }
+
+        .metric-bar-fill.security { background: #ef4444; }
+        .metric-bar-fill.architecture { background: #3b82f6; }
+        .metric-bar-fill.quality { background: #10b981; }
+
+        /* Activity Feed */
+        .activity-feed {
+            space-y: 16px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .activity-item:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.assessment { background: #d1fae5; }
+        .activity-icon.requirement { background: #dbeafe; }
+        .activity-icon.risk { background: #fee2e2; }
+        .activity-icon.compliance { background: #f3e8ff; }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .asset-context-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .asset-metrics {
+                justify-content: center;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .asset-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs-container {
+                padding: 0 16px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>GRC Portal</h1>
+                    <div class="subtitle">Asset-Driven Compliance Hub</div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Search requirements, assets, assessments...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    
+                    <select class="role-selector" id="roleSelector">
+                        <option value="developer">Developer</option>
+                        <option value="architect">Architect</option>
+                        <option value="manager">IT Manager</option>
+                    </select>
+                    
+                    <div class="user-info">
+                        <div class="user-avatar">AM</div>
+                        <span>Alex Morgan</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Asset Context Bar -->
+    <div class="asset-context-bar">
+        <div class="container">
+            <div class="asset-context-content">
+                <div class="current-asset">
+                    <div class="asset-name" id="currentAssetName">Customer Portal API</div>
+                    <div class="asset-type" id="currentAssetType">REST API</div>
+                </div>
+                
+                <div class="asset-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="complianceScore">87%</div>
+                        <div class="metric-label">Compliance Score</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="totalRisks">3</div>
+                        <div class="metric-label">Active Risks</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="totalRequirements">24</div>
+                        <div class="metric-label">Applicable Requirements</div>
+                    </div>
+                </div>
+                
+                <button class="switch-asset-btn" onclick="toggleAssetPortfolio()">
+                    <span id="portfolioToggleText">Switch Asset</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asset Portfolio Overlay -->
+    <div class="asset-portfolio-overlay hidden" id="assetPortfolio">
+        <div class="container">
+            <div class="portfolio-header">
+                <h2 class="portfolio-title">Asset Portfolio</h2>
+                <p class="portfolio-description">Select an asset to view its compliance requirements and assessments</p>
+            </div>
+            
+            <div class="portfolio-filters">
+                <div class="filter-group">
+                    <label class="filter-label">Type:</label>
+                    <select class="filter-select" id="typeFilter" onchange="filterAssets()">
+                        <option value="all">All Types</option>
+                        <option value="api">APIs</option>
+                        <option value="web-app">Web Apps</option>
+                        <option value="mobile-app">Mobile Apps</option>
+                        <option value="platform">Platforms</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Domain:</label>
+                    <select class="filter-select" id="domainFilter" onchange="filterAssets()">
+                        <option value="all">All Domains</option>
+                        <option value="financial">Financial</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="retail">Retail</option>
+                        <option value="enterprise">Enterprise</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Compliance:</label>
+                    <select class="filter-select" id="complianceFilter" onchange="filterAssets()">
+                        <option value="all">All Scores</option>
+                        <option value="high">90%+ (Excellent)</option>
+                        <option value="medium">75-89% (Good)</option>
+                        <option value="low"><75% (Needs Attention)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="asset-grid" id="assetGrid">
+                <!-- Asset cards will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <div class="container">
+            <div class="tabs-container">
+                <button class="tab-button active" onclick="showTab('overview')">
+                    📊 Overview
+                </button>
+                <button class="tab-button" onclick="showTab('requirements')">
+                    📋 Requirements
+                    <span class="tab-badge" id="requirementsBadge">24</span>
+                </button>
+                <button class="tab-button" onclick="showTab('assessments')">
+                    ✅ Assessments
+                    <span class="tab-badge">2</span>
+                </button>
+                <button class="tab-button" onclick="showTab('comparison')">
+                    ⚖️ Compare Assets
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Overview Tab -->
+            <div id="overview" class="content-section active">
+                <div class="section-header">
+                    <h2 class="section-title" id="overviewTitle">Customer Portal API Overview</h2>
+                    <p class="section-description" id="overviewDescription">
+                        Comprehensive compliance view for your selected asset including scores, risks, and recent activity.
+                    </p>
+                </div>
+
+                <div class="card-grid">
+                    <!-- Compliance Score Card -->
+                    <div class="card">
+                        <h3>Compliance Score</h3>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <div style="font-size: 36px; font-weight: 700; color: #059669; margin-bottom: 8px;" id="overviewComplianceScore">87%</div>
+                                <div style="color: #6b7280; font-size: 14px;">Overall Compliance</div>
+                            </div>
+                            <div class="score-circle">
+                                <svg width="80" height="80" viewBox="0 0 80 80">
+                                    <circle cx="40" cy="40" r="35" stroke="#e5e7eb" stroke-width="6" fill="none"/>
+                                    <circle cx="40" cy="40" r="35" stroke="#059669" stroke-width="6" fill="none"
+                                            stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="28.6" 
+                                            id="overviewScoreCircle"/>
+                                </svg>
+                                <div class="score-text" style="font-size: 14px;">87%</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; border-top: 1px solid #f3f4f6; padding-top: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #ef4444; font-size: 14px;">🔒 Security</span>
+                                <span style="font-weight: 600;">85%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #3b82f6; font-size: 14px;">🏗️ Architecture</span>
+                                <span style="font-weight: 600;">88%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #10b981; font-size: 14px;">✅ Quality</span>
+                                <span style="font-weight: 600;">92%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Summary Card -->
+                    <div class="card">
+                        <h3>Risk Summary</h3>
+                        <div style="space-y: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 12px; height: 12px; background: #dc2626; border-radius: 50%;"></div>
+                                    <span style="color: #6b7280; font-size: 14px;">Critical</span>
+                                </div>
+                                <span style="font-weight: 600; color: #dc2626;">0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 12px; height: 12px; background: #ea580c; border-radius: 50%;"></div>
+                                    <span style="color: #6b7280; font-size: 14px;">High</span>
+                                </div>
+                                <span style="font-weight: 600; color: #ea580c;">1</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 12px; height: 12px; background: #d97706; border-radius: 50%;"></div>
+                                    <span style="color: #6b7280; font-size: 14px;">Medium</span>
+                                </div>
+                                <span style="font-weight: 600; color: #d97706;">2</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 12px; height: 12px; background: #059669; border-radius: 50%;"></div>
+                                    <span style="color: #6b7280; font-size: 14px;">Low</span>
+                                </div>
+                                <span style="font-weight: 600; color: #059669;">0</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #f3f4f6;">
+                            <button class="btn btn-secondary" style="width: 100%;">
+                                View Risk Details
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Asset Attributes Card -->
+                    <div class="card">
+                        <h3>Asset Attributes</h3>
+                        <div style="space-y: 16px;">
+                            <div style="margin-bottom: 16px;">
+                                <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Type</div>
+                                <div style="font-weight: 600;" id="overviewAssetType">REST API</div>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Domain</div>
+                                <div style="font-weight: 600;" id="overviewAssetDomain">Financial</div>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Hosting</div>
+                                <div style="font-weight: 600;">Cloud</div>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Data Classification</div>
+                                <div style="font-weight: 600;">Confidential</div>
+                            </div>
+                            <div>
+                                <div style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Tech Stack</div>
+                                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                    <span style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Node.js</span>
+                                    <span style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Express</span>
+                                    <span style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">PostgreSQL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card" style="margin-top: 32px;">
+                    <h3>Recent Activity</h3>
+                    <div class="activity-feed" id="recentActivity">
+                        <!-- Activity items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requirements Tab -->
+            <div id="requirements" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Applicable Requirements</h2>
+                    <p class="section-description">
+                        Requirements relevant to <strong id="requirementsAssetName">Customer Portal API</strong> based on its attributes and domain
+                    </p>
+                </div>
+
+                <div class="requirements-container" id="requirementsContainer">
+                    <!-- Requirements will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Assessments Tab -->
+            <div id="assessments" class="content-section">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h2 class="section-title">Compliance Assessments</h2>
+                        <p class="section-description">
+                            Assessment history and active evaluations for <strong id="assessmentsAssetName">Customer Portal API</strong>
+                        </p>
+                    </div>
+                    <button class="btn btn-primary">
+                        📝 New Assessment
+                    </button>
+                </div>
+
+                <div id="assessmentsContainer">
+                    <!-- Assessments will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Comparison Tab -->
+            <div id="comparison" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Asset Comparison</h2>
+                    <p class="section-description">Compare compliance metrics across your asset portfolio</p>
+                </div>
+
+                <div class="comparison-grid" id="comparisonGrid">
+                    <!-- Comparison cards will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mock Data
+        const mockAssets = [
+            {
+                id: 'api-001',
+                name: 'Customer Portal API',
+                type: 'api',
+                domain: 'financial',
+                complianceScore: 87,
+                riskCount: { critical: 0, high: 1, medium: 2, low: 0 },
+                icon: '🔌',
+                description: 'Core API providing customer data and transaction services',
+                attributes: {
+                    hosting: 'Cloud',
+                    dataClassification: 'Confidential',
+                    techStack: ['Node.js', 'Express', 'PostgreSQL']
+                }
+            },
+            {
+                id: 'web-001',
+                name: 'Mobile Banking App',
+                type: 'mobile-app',
+                domain: 'financial',
+                complianceScore: 92,
+                riskCount: { critical: 0, high: 0, medium: 1, low: 2 },
+                icon: '📱',
+                description: 'iOS and Android application for mobile banking services',
+                attributes: {
+                    hosting: 'App Store',
+                    dataClassification: 'Restricted',
+                    techStack: ['React Native', 'Redux', 'Firebase']
+                }
+            },
+            {
+                id: 'dash-001',
+                name: 'Analytics Dashboard',
+                type: 'web-app',
+                domain: 'enterprise',
+                complianceScore: 78,
+                riskCount: { critical: 1, high: 2, medium: 1, low: 0 },
+                icon: '📊',
+                description: 'Internal dashboard for business intelligence and reporting',
+                attributes: {
+                    hosting: 'On-Premise',
+                    dataClassification: 'Internal',
+                    techStack: ['React', 'D3.js', 'MongoDB']
+                }
+            },
+            {
+                id: 'gateway-001',
+                name: 'Payment Gateway',
+                type: 'platform',
+                domain: 'financial',
+                complianceScore: 95,
+                riskCount: { critical: 0, high: 0, medium: 0, low: 1 },
+                icon: '💳',
+                description: 'Secure payment processing platform with multi-channel support',
+                attributes: {
+                    hosting: 'Hybrid',
+                    dataClassification: 'Restricted',
+                    techStack: ['Java', 'Spring', 'Oracle']
+                }
+            }
+        ];
+
+        const mockRequirements = {
+            'api-001': [
+                {
+                    id: 'SEC-001',
+                    title: 'API Authentication & Authorization',
+                    description: 'Implement OAuth 2.0 or similar authentication mechanism with proper token validation and refresh capabilities.',
+                    domain: 'security',
+                    priority: 'mandatory',
+                    relevanceScore: 98
+                },
+                {
+                    id: 'SEC-002',
+                    title: 'Data Encryption in Transit',
+                    description: 'All API communications must use TLS 1.3 or higher with strong cipher suites.',
+                    domain: 'security',
+                    priority: 'mandatory',
+                    relevanceScore: 95
+                },
+                {
+                    id: 'ARCH-001',
+                    title: 'API Rate Limiting',
+                    description: 'Implement rate limiting to prevent abuse and ensure fair usage across clients.',
+                    domain: 'architecture',
+                    priority: 'mandatory',
+                    relevanceScore: 90
+                },
+                {
+                    id: 'ARCH-002',
+                    title: 'API Versioning Strategy',
+                    description: 'Establish clear API versioning strategy supporting backward compatibility.',
+                    domain: 'architecture',
+                    priority: 'recommended',
+                    relevanceScore: 85
+                },
+                {
+                    id: 'QA-001',
+                    title: 'Automated API Testing',
+                    description: 'Implement comprehensive automated testing including unit, integration, and contract tests.',
+                    domain: 'quality',
+                    priority: 'mandatory',
+                    relevanceScore: 92
+                },
+                {
+                    id: 'QA-002',
+                    title: 'API Documentation Standards',
+                    description: 'Maintain up-to-date API documentation using OpenAPI specification.',
+                    domain: 'quality',
+                    priority: 'recommended',
+                    relevanceScore: 88
+                }
+            ]
+        };
+
+        const mockAssessments = [
+            {
+                id: 'assess-001',
+                title: 'Security Compliance Review',
+                description: 'Comprehensive security assessment covering authentication, authorization, and data protection',
+                status: 'in-progress',
+                progress: { completed: 7, total: 12, percentage: 58 },
+                complianceScore: 85,
+                assignedTo: ['Alex Morgan', 'Sarah Chen'],
+                updatedAt: '2024-01-15T10:30:00Z'
+            },
+            {
+                id: 'assess-002',
+                title: 'Architecture Review',
+                description: 'Review of API design patterns, scalability, and integration architecture',
+                status: 'completed',
+                progress: { completed: 8, total: 8, percentage: 100 },
+                complianceScore: 88,
+                assignedTo: ['Mike Johnson'],
+                updatedAt: '2024-01-10T14:20:00Z'
+            }
+        ];
+
+        // Global State
+        let currentAsset = mockAssets[0];
+        let currentRole = 'developer';
+        let showPortfolio = false;
+        let activeTab = 'overview';
+
+        // Initialize Application
+        function initApp() {
+            updateAssetContext();
+            updateContent();
+            populateAssetGrid();
+            populateRecentActivity();
+            
+            // Set up role selector
+            document.getElementById('roleSelector').addEventListener('change', function(e) {
+                currentRole = e.target.value;
+                updateContent();
+            });
+        }
+
+        // Asset Portfolio Management
+        function toggleAssetPortfolio() {
+            showPortfolio = !showPortfolio;
+            const portfolio = document.getElementById('assetPortfolio');
+            const toggleText = document.getElementById('portfolioToggleText');
+            
+            if (showPortfolio) {
+                portfolio.classList.remove('hidden');
+                toggleText.textContent = 'Hide Portfolio';
+            } else {
+                portfolio.classList.add('hidden');
+                toggleText.textContent = 'Switch Asset';
+            }
+        }
+
+        function selectAsset(asset) {
+            currentAsset = asset;
+            updateAssetContext();
+            updateContent();
+            toggleAssetPortfolio(); // Hide portfolio after selection
+            
+            // Update selected state in grid
+            populateAssetGrid();
+        }
+
+        function filterAssets() {
+            const typeFilter = document.getElementById('typeFilter').value;
+            const domainFilter = document.getElementById('domainFilter').value;
+            const complianceFilter = document.getElementById('complianceFilter').value;
+            
+            let filteredAssets = mockAssets;
+            
+            if (typeFilter !== 'all') {
+                filteredAssets = filteredAssets.filter(asset => asset.type === typeFilter);
+            }
+            
+            if (domainFilter !== 'all') {
+                filteredAssets = filteredAssets.filter(asset => asset.domain === domainFilter);
+            }
+            
+            if (complianceFilter !== 'all') {
+                filteredAssets = filteredAssets.filter(asset => {
+                    if (complianceFilter === 'high') return asset.complianceScore >= 90;
+                    if (complianceFilter === 'medium') return asset.complianceScore >= 75 && asset.complianceScore < 90;
+                    if (complianceFilter === 'low') return asset.complianceScore < 75;
+                    return true;
+                });
+            }
+            
+            populateAssetGrid(filteredAssets);
+        }
+
+        function populateAssetGrid(assets = mockAssets) {
+            const grid = document.getElementById('assetGrid');
+            
+            grid.innerHTML = assets.map(asset => `
+                <div class="asset-card ${asset.id === currentAsset.id ? 'selected' : ''}" onclick="selectAsset(${JSON.stringify(asset).replace(/"/g, '&quot;')})">
+                    <div class="asset-header">
+                        <div class="asset-icon">${asset.icon}</div>
+                        <div class="asset-info">
+                            <h4>${asset.name}</h4>
+                            <div class="meta">${asset.type.replace('-', ' ')} • ${asset.domain}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="compliance-score">
+                        <div class="score-circle">
+                            <svg width="60" height="60" viewBox="0 0 60 60">
+                                <circle cx="30" cy="30" r="25" stroke="#e5e7eb" stroke-width="4" fill="none"/>
+                                <circle cx="30" cy="30" r="25" stroke="${getComplianceColor(asset.complianceScore)}" stroke-width="4" fill="none"
+                                        stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="${157 - (asset.complianceScore / 100) * 157}"/>
+                            </svg>
+                            <div class="score-text">${asset.complianceScore}%</div>
+                        </div>
+                        
+                        <div class="risk-summary">
+                            <div class="risk-count">${getTotalRisks(asset.riskCount)}</div>
+                            <div class="risk-label">Active Risks</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Navigation Management
+        function showTab(tabName) {
+            // Update active tab button
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            
+            activeTab = tabName;
+            updateContent();
+        }
+
+        // Content Updates
+        function updateAssetContext() {
+            document.getElementById('currentAssetName').textContent = currentAsset.name;
+            document.getElementById('currentAssetType').textContent = currentAsset.type.replace('-', ' ').toUpperCase();
+            document.getElementById('complianceScore').textContent = currentAsset.complianceScore + '%';
+            document.getElementById('totalRisks').textContent = getTotalRisks(currentAsset.riskCount);
+            
+            const requirements = mockRequirements[currentAsset.id] || [];
+            document.getElementById('totalRequirements').textContent = requirements.length;
+        }
+
+        function updateContent() {
+            updateOverviewTab();
+            updateRequirementsTab();
+            updateAssessmentsTab();
+            updateComparisonTab();
+        }
+
+        function updateOverviewTab() {
+            document.getElementById('overviewTitle').textContent = currentAsset.name + ' Overview';
+            document.getElementById('overviewDescription').textContent = currentAsset.description;
+            document.getElementById('overviewComplianceScore').textContent = currentAsset.complianceScore + '%';
+            document.getElementById('overviewAssetType').textContent = currentAsset.type.replace('-', ' ').toUpperCase();
+            document.getElementById('overviewAssetDomain').textContent = currentAsset.domain.charAt(0).toUpperCase() + currentAsset.domain.slice(1);
+            
+            // Update compliance score circle
+            const circle = document.getElementById('overviewScoreCircle');
+            const offset = 220 - (currentAsset.complianceScore / 100) * 220;
+            circle.style.strokeDashoffset = offset;
+            circle.style.stroke = getComplianceColor(currentAsset.complianceScore);
+        }
+
+        function updateRequirementsTab() {
+            document.getElementById('requirementsAssetName').textContent = currentAsset.name;
+            document.getElementById('requirementsBadge').textContent = (mockRequirements[currentAsset.id] || []).length;
+            
+            const requirements = mockRequirements[currentAsset.id] || [];
+            const groupedReqs = groupRequirementsByDomain(requirements);
+            
+            const container = document.getElementById('requirementsContainer');
+            
+            if (requirements.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <h3>No Requirements Found</h3>
+                        <p>No specific requirements have been identified for this asset yet.</p>
+                        <button class="btn btn-primary">Add Requirements</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = Object.keys(groupedReqs).map(domain => `
+                <div class="domain-section">
+                    <div class="domain-header">
+                        <div class="domain-title">
+                            ${getDomainIcon(domain)} ${domain.charAt(0).toUpperCase() + domain.slice(1)} Requirements
+                            <span class="requirement-count">${groupedReqs[domain].length}</span>
+                        </div>
+                    </div>
+                    <div class="requirements-list">
+                        ${groupedReqs[domain].map(req => `
+                            <div class="requirement-item">
+                                <div class="requirement-header">
+                                    <div class="requirement-id">${req.id}</div>
+                                </div>
+                                <div class="requirement-title">${req.title}</div>
+                                <div class="requirement-description">${req.description}</div>
+                                <div class="requirement-meta">
+                                    <div class="requirement-tags">
+                                        <span class="tag ${req.priority}">${req.priority.charAt(0).toUpperCase() + req.priority.slice(1)}</span>
+                                    </div>
+                                    <div class="relevance-score">Relevance: ${req.relevanceScore}%</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateAssessmentsTab() {
+            document.getElementById('assessmentsAssetName').textContent = currentAsset.name;
+            
+            const container = document.getElementById('assessmentsContainer');
+            
+            if (mockAssessments.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <h3>No Assessments Yet</h3>
+                        <p>Start a new compliance assessment for this asset.</p>
+                        <button class="btn btn-primary">Create Assessment</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = mockAssessments.map(assessment => `
+                <div class="assessment-card">
+                    <div class="assessment-header">
+                        <div>
+                            <div class="assessment-title">${assessment.title}</div>
+                            <div class="assessment-description">${assessment.description}</div>
+                        </div>
+                        <span class="status-badge ${assessment.status}">
+                            ${assessment.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
+                    </div>
+                    
+                    <div class="assessment-metrics">
+                        <div class="metric-card">
+                            <div class="label">Progress</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${assessment.progress.percentage}%"></div>
+                            </div>
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                                ${assessment.progress.completed} of ${assessment.progress.total} completed
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="label">Compliance Score</div>
+                            <div class="value" style="color: ${getComplianceColor(assessment.complianceScore)};">${assessment.complianceScore}%</div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="label">Last Updated</div>
+                            <div class="value" style="font-size: 14px; font-weight: 500;">
+                                ${new Date(assessment.updatedAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #f3f4f6;">
+                        <div style="font-size: 12px; color: #6b7280;">
+                            Assigned to: ${assessment.assignedTo.join(', ')}
+                        </div>
+                        <button class="btn btn-secondary">View Details →</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateComparisonTab() {
+            const container = document.getElementById('comparisonGrid');
+            
+            container.innerHTML = mockAssets.slice(0, 3).map(asset => `
+                <div class="comparison-card">
+                    <div class="comparison-asset-icon">${asset.icon}</div>
+                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">${asset.name}</h4>
+                    <p style="font-size: 12px; color: #6b7280; margin-bottom: 16px;">${asset.type.replace('-', ' ')}</p>
+                    
+                    <div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Overall Compliance</div>
+                        <div style="font-size: 24px; font-weight: 700; color: ${getComplianceColor(asset.complianceScore)}; margin-bottom: 16px;">
+                            ${asset.complianceScore}%
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-metrics">
+                        <div class="comparison-metric">
+                            <span style="font-size: 11px;">Security</span>
+                            <div class="metric-bar">
+                                <div class="metric-bar-fill security" style="width: ${85 + Math.floor(Math.random() * 10)}%"></div>
+                            </div>
+                            <span style="font-size: 11px; font-weight: 600;">${85 + Math.floor(Math.random() * 10)}%</span>
+                        </div>
+                        
+                        <div class="comparison-metric">
+                            <span style="font-size: 11px;">Architecture</span>
+                            <div class="metric-bar">
+                                <div class="metric-bar-fill architecture" style="width: ${75 + Math.floor(Math.random() * 20)}%"></div>
+                            </div>
+                            <span style="font-size: 11px; font-weight: 600;">${75 + Math.floor(Math.random() * 20)}%</span>
+                        </div>
+                        
+                        <div class="comparison-metric">
+                            <span style="font-size: 11px;">Quality</span>
+                            <div class="metric-bar">
+                                <div class="metric-bar-fill quality" style="width: ${80 + Math.floor(Math.random() * 15)}%"></div>
+                            </div>
+                            <span style="font-size: 11px; font-weight: 600;">${80 + Math.floor(Math.random() * 15)}%</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateRecentActivity() {
+            const activities = [
+                { type: 'assessment', action: 'Security assessment completed', time: '2 hours ago', icon: '✅' },
+                { type: 'requirement', action: 'New API security requirement added', time: '1 day ago', icon: '📋' },
+                { type: 'risk', action: 'Medium risk documented for rate limiting', time: '3 days ago', icon: '⚠️' },
+                { type: 'compliance', action: 'Compliance score updated to 87%', time: '1 week ago', icon: '📊' }
+            ];
+
+            const container = document.getElementById('recentActivity');
+            container.innerHTML = activities.map(activity => `
+                <div class="activity-item">
+                    <div class="activity-icon ${activity.type}">${activity.icon}</div>
+                    <div class="activity-content">
+                        <div class="activity-title">${activity.action}</div>
+                        <div class="activity-time">${activity.time}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Utility Functions
+        function getTotalRisks(riskCount) {
+            if (!riskCount) return 0;
+            return riskCount.critical + riskCount.high + riskCount.medium + riskCount.low;
+        }
+
+        function getComplianceColor(score) {
+            if (score >= 90) return '#10b981';
+            if (score >= 75) return '#f59e0b';
+            return '#ef4444';
+        }
+
+        function getDomainIcon(domain) {
+            const icons = {
+                security: '🔒',
+                architecture: '🏗️',
+                quality: '✅'
+            };
+            return icons[domain] || '📋';
+        }
+
+        function groupRequirementsByDomain(requirements) {
+            return requirements.reduce((acc, req) => {
+                if (!acc[req.domain]) acc[req.domain] = [];
+                acc[req.domain].push(req);
+                return acc;
+            }, {});
+        }
+
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

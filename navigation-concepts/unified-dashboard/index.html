@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Governance Dashboard - GRC Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+        }
+        
+        .widget-container {
+            transition: all 0.3s ease;
+        }
+        
+        .widget-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .widget-drag {
+            cursor: grab;
+        }
+        
+        .widget-drag:active {
+            cursor: grabbing;
+        }
+        
+        .sidebar-slide {
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .metric-card.security {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .metric-card.quality {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .metric-card.architecture {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .real-time-indicator {
+            position: relative;
+        }
+        
+        .real-time-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -10px;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #EF4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .search-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 50;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .search-dropdown.show {
+            display: block;
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.5s ease-in-out;
+        }
+        
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            min-height: 200px; /* Ensure grid has minimum height */
+        }
+        
+        .widget-grid.xl-layout {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .widget-grid.lg-layout {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .widget-wide {
+            grid-column: span 2;
+        }
+        
+        @media (max-width: 1200px) {
+            .widget-grid {
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            }
+            .widget-wide {
+                grid-column: span 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .widget-grid {
+                grid-template-columns: 1fr;
+            }
+            .widget-wide {
+                grid-column: span 1;
+            }
+        }
+        
+        /* Ensure widgets are visible */
+        .widget-container {
+            min-height: 300px;
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Metric cards should be compact */
+        .metric-card.widget-container {
+            min-height: auto;
+        }
+        
+        /* Force widgets to be visible by default */
+        [id^="widget-"] {
+            display: block !important;
+        }
+        
+        /* Only hide when explicitly marked as hidden */
+        [id^="widget-"].hidden {
+            display: none !important;
+        }
+        
+        /* Ensure grid is always visible */
+        #widget-grid {
+            display: grid !important;
+        }
+        
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+        
+        .role-badge.architect {
+            background: #ddd6fe;
+            color: #7c3aed;
+        }
+        
+        .role-badge.developer {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .role-badge.manager {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .activity-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 14px;
+        }
+        
+        .activity-icon.assessment {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .activity-icon.risk {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .activity-icon.requirement {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .activity-icon.compliance {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .risk-level {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .risk-level.critical { background: #dc2626; }
+        .risk-level.high { background: #ea580c; }
+        .risk-level.medium { background: #ca8a04; }
+        .risk-level.low { background: #16a34a; }
+        
+        .domain-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .domain-indicator.security { background: #ef4444; }
+        .domain-indicator.architecture { background: #3b82f6; }
+        .domain-indicator.quality { background: #10b981; }
+        
+        .compliance-bar {
+            background: #f3f4f6;
+            border-radius: 4px;
+            height: 8px;
+            overflow: hidden;
+        }
+        
+        .compliance-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .compliance-fill.security { background: #ef4444; }
+        .compliance-fill.architecture { background: #3b82f6; }
+        .compliance-fill.quality { background: #10b981; }
+        
+        .quick-action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .quick-action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .quick-action-btn.primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .quick-action-btn.success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .quick-action-btn.warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .quick-action-btn.secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .asset-status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 8px;
+        }
+        
+        .asset-status-indicator.excellent { background: #10b981; }
+        .asset-status-indicator.good { background: #84cc16; }
+        .asset-status-indicator.fair { background: #f59e0b; }
+        .asset-status-indicator.poor { background: #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="px-6 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo & Title -->
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white text-sm font-bold">GRC</span>
+                        </div>
+                        <h1 class="text-xl font-bold text-gray-900">Unified Governance</h1>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        <span class="real-time-indicator">Live Dashboard</span>
+                    </div>
+                </div>
+                
+                <!-- Universal Search -->
+                <div class="flex-1 max-w-2xl mx-8 relative">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="universal-search-input"
+                            placeholder="Search across all governance data..."
+                            class="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <div id="search-dropdown" class="search-dropdown">
+                        <div class="p-4">
+                            <div class="space-y-2" id="search-results"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Header Actions -->
+                <div class="flex items-center space-x-4">
+                    <!-- Notifications -->
+                    <button 
+                        id="notifications-btn"
+                        class="relative p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM21 7l-5 5 5 5H8l5-5-5-5h13z"></path>
+                        </svg>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    
+                    <!-- Settings -->
+                    <button 
+                        id="settings-btn"
+                        class="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Role Selector -->
+                    <div class="relative">
+                        <button id="role-selector-btn" class="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            <span class="role-badge developer" id="current-role-badge">Developer</span>
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="role-dropdown" class="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden">
+                            <div class="py-1">
+                                <button class="role-option w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors" data-role="architect">
+                                    <span class="role-badge architect">Software Architect</span>
+                                </button>
+                                <button class="role-option w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors" data-role="developer">
+                                    <span class="role-badge developer">Developer</span>
+                                </button>
+                                <button class="role-option w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors" data-role="manager">
+                                    <span class="role-badge manager">IT Manager</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Avatar -->
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-medium" id="user-initials">AB</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700" id="user-name">Alex Brown</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="flex flex-1 pt-16">
+        <!-- Main Dashboard -->
+        <div class="flex-1 overflow-y-auto min-h-0">
+            <!-- Quick Actions Bar -->
+            <div class="bg-white border-b border-gray-200 px-6 py-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-sm font-medium text-gray-700">Quick Actions:</div>
+                        <div class="flex items-center space-x-2" id="quick-actions-container">
+                            <button class="quick-action-btn primary">
+                                📝 New Assessment
+                            </button>
+                            <button class="quick-action-btn success">
+                                ⚠️ Document Risk
+                            </button>
+                            <button class="quick-action-btn warning">
+                                📊 Generate Report
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Widget Controls -->
+                    <div class="flex items-center space-x-2">
+                        <button 
+                            id="customize-btn"
+                            class="quick-action-btn secondary"
+                        >
+                            🎨 Customize
+                        </button>
+                        <button 
+                            id="reset-layout-btn"
+                            class="quick-action-btn secondary"
+                        >
+                            🔄 Reset Layout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="p-6">
+                <!-- Key Metrics Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="metric-card text-white rounded-lg p-4 widget-container">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-white opacity-90 text-sm mb-1">Total Assets</div>
+                                <div class="text-2xl font-bold" id="total-assets-metric">147</div>
+                                <div class="text-white opacity-75 text-xs mt-1">+2 this month</div>
+                            </div>
+                            <div class="text-3xl opacity-80">🏗️</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card security text-white rounded-lg p-4 widget-container">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-white opacity-90 text-sm mb-1">Avg Compliance</div>
+                                <div class="text-2xl font-bold" id="compliance-average-metric">84%</div>
+                                <div class="text-white opacity-75 text-xs mt-1">+1.2% this week</div>
+                            </div>
+                            <div class="text-3xl opacity-80">📊</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card quality text-white rounded-lg p-4 widget-container">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-white opacity-90 text-sm mb-1">Active Risks</div>
+                                <div class="text-2xl font-bold" id="active-risks-metric">23</div>
+                                <div class="text-white opacity-75 text-xs mt-1">-3 resolved</div>
+                            </div>
+                            <div class="text-3xl opacity-80">⚠️</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card architecture text-white rounded-lg p-4 widget-container">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-white opacity-90 text-sm mb-1">In Progress</div>
+                                <div class="text-2xl font-bold" id="in-progress-metric">8</div>
+                                <div class="text-white opacity-75 text-xs mt-1">assessments</div>
+                            </div>
+                            <div class="text-3xl opacity-80">🎯</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adaptive Widget Grid -->
+                <div class="widget-grid lg-layout mb-8" id="widget-grid">
+                    <!-- My Active Tasks Widget -->
+                    <div class="bg-white rounded-xl border border-gray-200 widget-container" id="widget-active-tasks">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">My Active Tasks</h3>
+                            <div class="flex items-center space-x-2">
+                                <div class="real-time-indicator text-sm text-gray-500">Live</div>
+                                <button class="widget-hide-btn text-gray-400 hover:text-red-500 hidden">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4" id="active-tasks-list">
+                                <div class="text-gray-500 text-center text-sm">Loading tasks...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Widget -->
+                    <div class="bg-white rounded-xl border border-gray-200 widget-container" id="widget-recent-activity">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                            <div class="flex items-center space-x-2">
+                                <div class="real-time-indicator text-sm text-gray-500">Live</div>
+                                <button class="widget-hide-btn text-gray-400 hover:text-red-500 hidden">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4" id="recent-activity-list">
+                                <div class="text-gray-500 text-center text-sm">Loading activity...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Domain Health Overview Widget -->
+                    <div class="bg-white rounded-xl border border-gray-200 widget-container widget-wide" id="widget-domain-health">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Domain Health Overview</h3>
+                            <button class="widget-hide-btn text-gray-400 hover:text-red-500 hidden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="domain-health-grid">
+                                <div class="text-gray-500 text-center text-sm col-span-3">Loading domain health...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compliance Trends Widget -->
+                    <div class="bg-white rounded-xl border border-gray-200 widget-container" id="widget-compliance-trends">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Compliance Trends</h3>
+                            <button class="widget-hide-btn text-gray-400 hover:text-red-500 hidden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-6">
+                            <div id="compliance-chart">
+                                <div class="text-gray-500 text-center text-sm">Loading compliance trends...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Heatmap Widget -->
+                    <div class="bg-white rounded-xl border border-gray-200 widget-container" id="widget-risk-heatmap">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Risk Heatmap</h3>
+                            <button class="widget-hide-btn text-gray-400 hover:text-red-500 hidden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-6">
+                            <div id="risk-heatmap">
+                                <div class="text-gray-500 text-center text-sm">Loading risk data...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Asset Portfolio Widget -->
+                    <div class="bg-white rounded-xl border border-gray-200 widget-container widget-wide" id="widget-asset-portfolio">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Asset Portfolio</h3>
+                            <div class="flex items-center space-x-4">
+                                <select id="asset-filter" class="text-sm border border-gray-300 rounded px-2 py-1">
+                                    <option value="all">All Assets</option>
+                                    <option value="api">APIs</option>
+                                    <option value="web-app">Web Apps</option>
+                                    <option value="mobile-app">Mobile Apps</option>
+                                    <option value="platform">Platforms</option>
+                                </select>
+                                <button class="widget-hide-btn text-gray-400 hover:text-red-500 hidden">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="asset-portfolio-grid">
+                                <div class="text-gray-500 text-center text-sm col-span-3">Loading assets...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Requirements Status Widget -->
+                    <div class="bg-white rounded-xl border border-gray-200 widget-container" id="widget-requirements-status">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Requirements Status</h3>
+                            <button class="widget-hide-btn text-gray-400 hover:text-red-500 hidden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-3" id="requirements-status-list">
+                                <div class="text-gray-500 text-center text-sm">Loading requirements...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assessment Pipeline Widget -->
+                    <div class="bg-white rounded-xl border border-gray-200 widget-container" id="widget-assessment-pipeline">
+                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Assessment Pipeline</h3>
+                            <button class="widget-hide-btn text-gray-400 hover:text-red-500 hidden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-6">
+                            <div id="assessment-pipeline">
+                                <div class="text-gray-500 text-center text-sm">Loading pipeline...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden Widgets Panel -->
+                <div id="hidden-widgets-panel" class="mt-8 bg-gray-100 rounded-xl p-6 hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Hidden Widgets</h3>
+                    <div class="flex flex-wrap gap-3" id="hidden-widgets-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contextual Sidebar -->
+        <div id="contextual-sidebar" class="bg-white border-l border-gray-200 w-80 flex flex-col sidebar-slide transform translate-x-full">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Context Panel</h3>
+                    <button id="close-sidebar-btn" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6">
+                <div id="sidebar-content">
+                    <div class="text-gray-500 text-center text-sm">
+                        Select an item to view details
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle Sidebar Button -->
+    <button 
+        id="toggle-sidebar-btn"
+        class="fixed right-4 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-3 rounded-l-lg shadow-lg hover:bg-blue-700 transition-colors z-40"
+    >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+    </button>
+
+    <!-- Analytics Footer -->
+    <footer class="bg-white border-t border-gray-200 px-6 py-3 text-center text-sm text-gray-500 mt-auto">
+        <div id="analytics-footer">
+            Navigation Analytics: <span id="analytics-interactions">0</span> interactions • 
+            <span id="analytics-time">0s</span> session time • 
+            Most used: <span id="analytics-popular">Dashboard</span>
+        </div>
+    </footer>
+
+    <script>
+        // Mock Data
+        const mockUsers = {
+            architect: { name: 'Sarah Chen', role: 'Software Architect', initials: 'SC' },
+            developer: { name: 'Alex Brown', role: 'Developer', initials: 'AB' },
+            manager: { name: 'Michael Kumar', role: 'IT Manager', initials: 'MK' }
+        };
+
+        const mockAssets = [
+            { id: 'asset-1', name: 'Customer Portal API', type: 'api', complianceScore: 85, riskCount: { critical: 0, high: 1, medium: 2, low: 1 }, attributes: { hosting: 'cloud', data: 'sensitive' } },
+            { id: 'asset-2', name: 'Mobile Banking App', type: 'mobile-app', complianceScore: 78, riskCount: { critical: 1, high: 0, medium: 1, low: 2 }, attributes: { hosting: 'cloud', data: 'confidential' } },
+            { id: 'asset-3', name: 'Analytics Platform', type: 'platform', complianceScore: 92, riskCount: { critical: 0, high: 0, medium: 1, low: 0 }, attributes: { hosting: 'hybrid', data: 'internal' } },
+            { id: 'asset-4', name: 'E-commerce Website', type: 'web-app', complianceScore: 89, riskCount: { critical: 0, high: 1, medium: 0, low: 1 }, attributes: { hosting: 'cloud', data: 'public' } },
+            { id: 'asset-5', name: 'Payment Gateway API', type: 'api', complianceScore: 76, riskCount: { critical: 1, high: 1, medium: 1, low: 0 }, attributes: { hosting: 'cloud', data: 'confidential' } },
+            { id: 'asset-6', name: 'CRM Platform', type: 'platform', complianceScore: 82, riskCount: { critical: 0, high: 2, medium: 3, low: 1 }, attributes: { hosting: 'on-premise', data: 'sensitive' } }
+        ];
+
+        const mockRequirements = {
+            security: [
+                { id: 'sec-1', title: 'Multi-Factor Authentication', priority: 'Mandatory', domain: 'security', description: 'All systems must implement MFA' },
+                { id: 'sec-2', title: 'Data Encryption at Rest', priority: 'Mandatory', domain: 'security', description: 'Sensitive data must be encrypted' },
+                { id: 'sec-3', title: 'Access Logging', priority: 'Recommended', domain: 'security', description: 'Log all access attempts' }
+            ],
+            architecture: [
+                { id: 'arch-1', title: 'API Rate Limiting', priority: 'Mandatory', domain: 'architecture', description: 'APIs must implement rate limiting' },
+                { id: 'arch-2', title: 'Circuit Breaker Pattern', priority: 'Recommended', domain: 'architecture', description: 'Use circuit breakers for resilience' },
+                { id: 'arch-3', title: 'Microservices Design', priority: 'Optional', domain: 'architecture', description: 'Consider microservices architecture' }
+            ],
+            quality: [
+                { id: 'qual-1', title: 'Unit Test Coverage', priority: 'Mandatory', domain: 'quality', description: 'Maintain 80%+ test coverage' },
+                { id: 'qual-2', title: 'Code Review Process', priority: 'Mandatory', domain: 'quality', description: 'All code must be reviewed' },
+                { id: 'qual-3', title: 'Performance Monitoring', priority: 'Recommended', domain: 'quality', description: 'Monitor application performance' }
+            ]
+        };
+
+        // Application State
+        class UnifiedDashboardApp {
+            constructor() {
+                this.currentRole = 'developer';
+                this.customizeMode = false;
+                this.sidebarOpen = false;
+                this.visibleWidgets = new Set([
+                    'widget-active-tasks',
+                    'widget-recent-activity', 
+                    'widget-domain-health',
+                    'widget-compliance-trends',
+                    'widget-risk-heatmap',
+                    'widget-asset-portfolio',
+                    'widget-requirements-status',
+                    'widget-assessment-pipeline'
+                ]);
+                this.navigationAnalytics = {
+                    interactions: 0,
+                    startTime: Date.now(),
+                    popularActions: {}
+                };
+                
+                this.init();
+            }
+
+            init() {
+                console.log('Initializing Unified Dashboard App');
+                this.setupEventListeners();
+                this.updateUserInterface();
+                
+                // Render widgets after a short delay to ensure DOM is ready
+                setTimeout(() => {
+                    this.renderAllWidgets();
+                }, 100);
+                
+                this.startRealTimeUpdates();
+                this.updateAnalytics();
+            }
+
+            setupEventListeners() {
+                // Role selector
+                document.getElementById('role-selector-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdown = document.getElementById('role-dropdown');
+                    dropdown.classList.toggle('hidden');
+                });
+
+                document.querySelectorAll('.role-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        this.currentRole = e.target.closest('.role-option').dataset.role;
+                        this.updateUserInterface();
+                        this.renderAllWidgets();
+                        document.getElementById('role-dropdown').classList.add('hidden');
+                        this.trackInteraction('role_change');
+                    });
+                });
+
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#role-selector-btn')) {
+                        document.getElementById('role-dropdown').classList.add('hidden');
+                    }
+                    if (!e.target.closest('#universal-search-input') && !e.target.closest('#search-dropdown')) {
+                        document.getElementById('search-dropdown').classList.remove('show');
+                    }
+                });
+
+                // Universal search
+                const searchInput = document.getElementById('universal-search-input');
+                searchInput.addEventListener('input', (e) => {
+                    this.handleSearch(e.target.value);
+                });
+
+                searchInput.addEventListener('focus', () => {
+                    if (searchInput.value) {
+                        document.getElementById('search-dropdown').classList.add('show');
+                    }
+                });
+
+                // Customize mode
+                document.getElementById('customize-btn').addEventListener('click', () => {
+                    this.customizeMode = !this.customizeMode;
+                    this.updateCustomizeMode();
+                    this.trackInteraction('customize_toggle');
+                });
+
+                // Reset layout
+                document.getElementById('reset-layout-btn').addEventListener('click', () => {
+                    this.resetLayout();
+                    this.trackInteraction('layout_reset');
+                });
+
+                // Sidebar controls
+                document.getElementById('close-sidebar-btn').addEventListener('click', () => {
+                    this.closeSidebar();
+                });
+
+                document.getElementById('toggle-sidebar-btn').addEventListener('click', () => {
+                    this.openSidebar();
+                });
+
+                // Asset filter
+                document.getElementById('asset-filter').addEventListener('change', (e) => {
+                    this.renderAssetPortfolio(e.target.value);
+                    this.trackInteraction('asset_filter');
+                });
+            }
+
+            updateUserInterface() {
+                const user = mockUsers[this.currentRole];
+                document.getElementById('user-name').textContent = user.name;
+                document.getElementById('user-initials').textContent = user.initials;
+                
+                const roleBadge = document.getElementById('current-role-badge');
+                roleBadge.textContent = user.role;
+                roleBadge.className = `role-badge ${this.currentRole}`;
+                
+                this.updateQuickActions();
+            }
+
+            updateQuickActions() {
+                const container = document.getElementById('quick-actions-container');
+                const roleActions = {
+                    architect: [
+                        { label: '🏗️ Design Review', class: 'primary' },
+                        { label: '📋 Architecture Assessment', class: 'success' },
+                        { label: '📐 Create Standard', class: 'warning' }
+                    ],
+                    developer: [
+                        { label: '📝 New Assessment', class: 'primary' },
+                        { label: '⚠️ Document Risk', class: 'success' },
+                        { label: '🧪 Run Tests', class: 'warning' }
+                    ],
+                    manager: [
+                        { label: '📊 Generate Report', class: 'primary' },
+                        { label: '👥 Team Review', class: 'success' },
+                        { label: '📈 Portfolio Analysis', class: 'warning' }
+                    ]
+                };
+
+                const actions = roleActions[this.currentRole];
+                container.innerHTML = actions.map(action => 
+                    `<button class="quick-action-btn ${action.class}">${action.label}</button>`
+                ).join('');
+            }
+
+            updateCustomizeMode() {
+                const customizeBtn = document.getElementById('customize-btn');
+                const hideButtons = document.querySelectorAll('.widget-hide-btn');
+                
+                if (this.customizeMode) {
+                    customizeBtn.textContent = '✅ Done';
+                    customizeBtn.classList.remove('secondary');
+                    customizeBtn.classList.add('warning');
+                    hideButtons.forEach(btn => btn.classList.remove('hidden'));
+                    this.updateHiddenWidgetsPanel();
+                } else {
+                    customizeBtn.textContent = '🎨 Customize';
+                    customizeBtn.classList.remove('warning');
+                    customizeBtn.classList.add('secondary');
+                    hideButtons.forEach(btn => btn.classList.add('hidden'));
+                    document.getElementById('hidden-widgets-panel').classList.add('hidden');
+                }
+            }
+
+            resetLayout() {
+                this.visibleWidgets = new Set([
+                    'widget-active-tasks',
+                    'widget-recent-activity', 
+                    'widget-domain-health',
+                    'widget-compliance-trends',
+                    'widget-risk-heatmap',
+                    'widget-asset-portfolio',
+                    'widget-requirements-status',
+                    'widget-assessment-pipeline'
+                ]);
+                this.updateWidgetVisibility();
+                this.updateHiddenWidgetsPanel();
+            }
+
+            updateWidgetVisibility() {
+                console.log('Updating widget visibility', this.visibleWidgets);
+                const allWidgets = document.querySelectorAll('[id^="widget-"]');
+                console.log('Found widgets:', allWidgets.length);
+                
+                allWidgets.forEach(widget => {
+                    console.log(`Widget ${widget.id}: visible = ${this.visibleWidgets.has(widget.id)}`);
+                    if (this.visibleWidgets.has(widget.id)) {
+                        widget.classList.remove('hidden');
+                        widget.style.display = 'block';
+                    } else {
+                        widget.classList.add('hidden');
+                        widget.style.display = 'none';
+                    }
+                });
+                
+                // Ensure grid is visible
+                const widgetGrid = document.getElementById('widget-grid');
+                if (widgetGrid) {
+                    const visibleWidgets = Array.from(allWidgets).filter(w => this.visibleWidgets.has(w.id));
+                    console.log(`${visibleWidgets.length} widgets should be visible`);
+                    widgetGrid.style.display = visibleWidgets.length > 0 ? 'grid' : 'none';
+                }
+            }
+
+            updateHiddenWidgetsPanel() {
+                const panel = document.getElementById('hidden-widgets-panel');
+                const container = document.getElementById('hidden-widgets-container');
+                
+                const allWidgetIds = [
+                    'widget-active-tasks',
+                    'widget-recent-activity', 
+                    'widget-domain-health',
+                    'widget-compliance-trends',
+                    'widget-risk-heatmap',
+                    'widget-asset-portfolio',
+                    'widget-requirements-status',
+                    'widget-assessment-pipeline'
+                ];
+                
+                const hiddenWidgets = allWidgetIds.filter(id => !this.visibleWidgets.has(id));
+                
+                if (this.customizeMode && hiddenWidgets.length > 0) {
+                    panel.classList.remove('hidden');
+                    container.innerHTML = hiddenWidgets.map(widgetId => {
+                        const name = this.getWidgetName(widgetId);
+                        return `<button class="quick-action-btn secondary" onclick="app.showWidget('${widgetId}')">+ ${name}</button>`;
+                    }).join('');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            }
+
+            getWidgetName(widgetId) {
+                const names = {
+                    'widget-active-tasks': 'My Active Tasks',
+                    'widget-recent-activity': 'Recent Activity',
+                    'widget-domain-health': 'Domain Health',
+                    'widget-compliance-trends': 'Compliance Trends',
+                    'widget-risk-heatmap': 'Risk Heatmap',
+                    'widget-asset-portfolio': 'Asset Portfolio',
+                    'widget-requirements-status': 'Requirements Status',
+                    'widget-assessment-pipeline': 'Assessment Pipeline'
+                };
+                return names[widgetId] || widgetId;
+            }
+
+            hideWidget(widgetId) {
+                this.visibleWidgets.delete(widgetId);
+                this.updateWidgetVisibility();
+                this.updateHiddenWidgetsPanel();
+                this.trackInteraction('widget_hide');
+            }
+
+            showWidget(widgetId) {
+                this.visibleWidgets.add(widgetId);
+                this.updateWidgetVisibility();
+                this.updateHiddenWidgetsPanel();
+                this.trackInteraction('widget_show');
+            }
+
+            handleSearch(query) {
+                const dropdown = document.getElementById('search-dropdown');
+                const resultsContainer = document.getElementById('search-results');
+                
+                if (!query.trim()) {
+                    dropdown.classList.remove('show');
+                    return;
+                }
+
+                // Mock search results
+                const mockResults = [
+                    { type: 'Requirement', title: 'Multi-Factor Authentication', domain: 'Security' },
+                    { type: 'Asset', title: 'Customer Portal API', status: '85% compliant' },
+                    { type: 'Risk', title: 'Outdated encryption protocol', level: 'High' },
+                    { type: 'Assessment', title: 'Q4 Security Review', status: 'In Progress' }
+                ].filter(item => 
+                    item.title.toLowerCase().includes(query.toLowerCase()) ||
+                    item.type.toLowerCase().includes(query.toLowerCase())
+                );
+
+                resultsContainer.innerHTML = mockResults.length > 0 
+                    ? mockResults.map(result => `
+                        <div class="p-2 hover:bg-gray-50 rounded cursor-pointer border-b border-gray-100 last:border-b-0" onclick="app.openSearchResult('${result.type}', '${result.title}')">
+                            <div class="font-medium text-gray-900 text-sm">${result.title}</div>
+                            <div class="text-xs text-gray-500">${result.type} ${result.domain || result.status || result.level || ''}</div>
+                        </div>
+                    `).join('')
+                    : '<div class="p-2 text-sm text-gray-500">No results found</div>';
+
+                dropdown.classList.add('show');
+                this.trackInteraction('search');
+            }
+
+            openSearchResult(type, title) {
+                this.openSidebar();
+                this.renderSidebarContent('search', { type, title });
+                document.getElementById('search-dropdown').classList.remove('show');
+                this.trackInteraction('search_result_click');
+            }
+
+            openSidebar() {
+                this.sidebarOpen = true;
+                document.getElementById('contextual-sidebar').classList.remove('translate-x-full');
+                document.getElementById('toggle-sidebar-btn').style.display = 'none';
+            }
+
+            closeSidebar() {
+                this.sidebarOpen = false;
+                document.getElementById('contextual-sidebar').classList.add('translate-x-full');
+                document.getElementById('toggle-sidebar-btn').style.display = 'block';
+            }
+
+            renderSidebarContent(type, data) {
+                const container = document.getElementById('sidebar-content');
+                
+                switch (type) {
+                    case 'search':
+                        container.innerHTML = `
+                            <div class="space-y-4">
+                                <h4 class="font-semibold text-gray-900">${data.type} Details</h4>
+                                <div class="p-4 bg-gray-50 rounded-lg">
+                                    <h5 class="font-medium text-gray-900">${data.title}</h5>
+                                    <p class="text-sm text-gray-600 mt-1">Detailed information about this ${data.type.toLowerCase()} would appear here.</p>
+                                </div>
+                                <button class="w-full quick-action-btn primary">View Full Details</button>
+                            </div>
+                        `;
+                        break;
+                    case 'asset':
+                        container.innerHTML = `
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-lg">${this.getAssetIcon(data.type)}</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">${data.name}</h4>
+                                        <p class="text-sm text-gray-600">${data.type.replace('-', ' ')}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        <div class="text-sm text-gray-600">Compliance Score</div>
+                                        <div class="text-2xl font-bold text-blue-600">${data.complianceScore}%</div>
+                                    </div>
+                                    
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        <div class="text-sm text-gray-600">Active Risks</div>
+                                        <div class="text-lg font-semibold text-orange-600">${this.getTotalRiskCount(data.riskCount)}</div>
+                                    </div>
+                                    
+                                    <button class="w-full quick-action-btn primary">View Full Details</button>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    default:
+                        container.innerHTML = '<div class="text-gray-500 text-center text-sm">Select an item to view details</div>';
+                }
+            }
+
+            renderAllWidgets() {
+                console.log('Rendering all widgets...');
+                this.renderActiveTasks();
+                this.renderRecentActivity();
+                this.renderDomainHealth();
+                this.renderComplianceChart();
+                this.renderRiskHeatmap();
+                this.renderAssetPortfolio();
+                this.renderRequirementsStatus();
+                this.renderAssessmentPipeline();
+                this.updateWidgetVisibility();
+                
+                // Setup widget hide buttons
+                document.querySelectorAll('.widget-hide-btn').forEach(btn => {
+                    const widgetId = btn.closest('[id^="widget-"]').id;
+                    btn.onclick = () => this.hideWidget(widgetId);
+                });
+                
+                // Force grid layout refresh
+                const widgetGrid = document.getElementById('widget-grid');
+                if (widgetGrid) {
+                    console.log('Widget grid found, forcing layout refresh');
+                    widgetGrid.style.display = 'none';
+                    setTimeout(() => {
+                        widgetGrid.style.display = 'grid';
+                    }, 10);
+                }
+            }
+
+            renderActiveTasks() {
+                console.log('Rendering active tasks');
+                const container = document.getElementById('active-tasks-list');
+                if (!container) {
+                    console.error('Active tasks container not found');
+                    return;
+                }
+                const roleTasks = {
+                    architect: [
+                        { task: 'Review API design patterns', priority: 'High', due: 'Today', type: 'review' },
+                        { task: 'Architecture assessment for new platform', priority: 'Medium', due: 'Tomorrow', type: 'assessment' },
+                        { task: 'Update security standards', priority: 'Low', due: 'This week', type: 'documentation' }
+                    ],
+                    developer: [
+                        { task: 'Complete security assessment', priority: 'High', due: 'Today', type: 'assessment' },
+                        { task: 'Fix authentication vulnerabilities', priority: 'High', due: 'Tomorrow', type: 'implementation' },
+                        { task: 'Update test coverage documentation', priority: 'Medium', due: 'This week', type: 'documentation' }
+                    ],
+                    manager: [
+                        { task: 'Review team compliance scores', priority: 'High', due: 'Today', type: 'review' },
+                        { task: 'Approve risk mitigation plans', priority: 'Medium', due: 'Tomorrow', type: 'approval' },
+                        { task: 'Quarterly portfolio review', priority: 'Low', due: 'Next week', type: 'review' }
+                    ]
+                };
+
+                const tasks = roleTasks[this.currentRole];
+                container.innerHTML = tasks.map(task => `
+                    <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                        <div class="activity-icon ${task.type}">
+                            ${this.getTaskIcon(task.type)}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2">
+                                <p class="text-sm font-medium text-gray-900 truncate">${task.task}</p>
+                                <span class="px-2 py-1 text-xs rounded-full ${this.getPriorityClass(task.priority)}">${task.priority}</span>
+                            </div>
+                            <p class="text-xs text-gray-500">Due: ${task.due}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderRecentActivity() {
+                console.log('Rendering recent activity');
+                const container = document.getElementById('recent-activity-list');
+                if (!container) {
+                    console.error('Recent activity container not found');
+                    return;
+                }
+                const activities = [
+                    { type: 'assessment', action: 'Security assessment completed', asset: 'Customer Portal API', time: '2 min ago', urgent: false },
+                    { type: 'risk', action: 'New risk documented', asset: 'Mobile Banking App', time: '15 min ago', urgent: true },
+                    { type: 'requirement', action: 'Requirement updated', asset: 'Analytics Platform', time: '1 hour ago', urgent: false },
+                    { type: 'compliance', action: 'Compliance score improved', asset: 'E-commerce Platform', time: '2 hours ago', urgent: false }
+                ];
+
+                container.innerHTML = activities.map(activity => `
+                    <div class="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                         onclick="app.openActivityDetail('${activity.type}')">
+                        <div class="activity-icon ${activity.type}">
+                            ${this.getActivityIcon(activity.type)}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2">
+                                <p class="text-sm font-medium text-gray-900 truncate">${activity.action}</p>
+                                ${activity.urgent ? '<span class="pulse-animation w-2 h-2 bg-red-500 rounded-full"></span>' : ''}
+                            </div>
+                            <p class="text-xs text-gray-500">${activity.asset}</p>
+                            <p class="text-xs text-gray-400">${activity.time}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderDomainHealth() {
+                console.log('Rendering domain health');
+                const container = document.getElementById('domain-health-grid');
+                if (!container) {
+                    console.error('Domain health container not found');
+                    return;
+                }
+                const domains = [
+                    { name: 'Security', score: 85, trend: '+2%', issues: 3, color: 'security' },
+                    { name: 'Architecture', score: 78, trend: '+5%', issues: 2, color: 'architecture' },
+                    { name: 'Quality', score: 92, trend: '-1%', issues: 1, color: 'quality' }
+                ];
+
+                container.innerHTML = domains.map(domain => `
+                    <div class="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="domain-indicator ${domain.color}"></div>
+                                <h4 class="font-semibold text-gray-900">${domain.name}</h4>
+                            </div>
+                            <span class="text-sm text-gray-500">${domain.trend}</span>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900 mb-2">${domain.score}%</div>
+                        <div class="compliance-bar mb-2">
+                            <div class="compliance-fill ${domain.color}" style="width: ${domain.score}%"></div>
+                        </div>
+                        <div class="text-xs text-gray-500">${domain.issues} active issues</div>
+                    </div>
+                `).join('');
+            }
+
+            renderComplianceChart() {
+                console.log('Rendering compliance chart');
+                const container = document.getElementById('compliance-chart');
+                if (!container) {
+                    console.error('Compliance chart container not found');
+                    return;
+                }
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-600">Overall Trend</span>
+                            <span class="text-green-600 font-medium">+2.3%</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-red-600">Security</span>
+                                    <span class="font-medium">85%</span>
+                                </div>
+                                <div class="compliance-bar">
+                                    <div class="compliance-fill security" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-blue-600">Architecture</span>
+                                    <span class="font-medium">78%</span>
+                                </div>
+                                <div class="compliance-bar">
+                                    <div class="compliance-fill architecture" style="width: 78%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-green-600">Quality</span>
+                                    <span class="font-medium">92%</span>
+                                </div>
+                                <div class="compliance-bar">
+                                    <div class="compliance-fill quality" style="width: 92%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button 
+                            onclick="app.openDetailView('compliance')"
+                            class="w-full text-center text-blue-600 hover:text-blue-800 text-sm font-medium pt-2 border-t border-gray-200"
+                        >
+                            View Detailed Analytics →
+                        </button>
+                    </div>
+                `;
+            }
+
+            renderRiskHeatmap() {
+                console.log('Rendering risk heatmap');
+                const container = document.getElementById('risk-heatmap');
+                if (!container) {
+                    console.error('Risk heatmap container not found');
+                    return;
+                }
+                const riskData = [
+                    { domain: 'Security', critical: 0, high: 2, medium: 3, low: 1 },
+                    { domain: 'Architecture', critical: 1, high: 1, medium: 4, low: 2 },
+                    { domain: 'Quality', critical: 0, high: 1, medium: 2, low: 3 }
+                ];
+
+                container.innerHTML = `
+                    <div class="space-y-3">
+                        ${riskData.map(domain => `
+                            <div class="flex items-center justify-between py-2">
+                                <span class="text-sm font-medium text-gray-900">${domain.domain}</span>
+                                <div class="flex items-center space-x-1">
+                                    ${domain.critical > 0 ? `<div class="risk-level critical">${domain.critical}</div>` : ''}
+                                    ${domain.high > 0 ? `<div class="risk-level high">${domain.high}</div>` : ''}
+                                    ${domain.medium > 0 ? `<div class="risk-level medium">${domain.medium}</div>` : ''}
+                                    ${domain.low > 0 ? `<div class="risk-level low">${domain.low}</div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="pt-3 border-t border-gray-200">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span class="flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-1"></span>Critical</span>
+                                <span class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-1"></span>High</span>
+                                <span class="flex items-center"><span class="w-2 h-2 bg-yellow-500 rounded-full mr-1"></span>Medium</span>
+                                <span class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>Low</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderAssetPortfolio(filterType = 'all') {
+                console.log('Rendering asset portfolio with filter:', filterType);
+                const container = document.getElementById('asset-portfolio-grid');
+                if (!container) {
+                    console.error('Asset portfolio container not found');
+                    return;
+                }
+                const filteredAssets = filterType === 'all' 
+                    ? mockAssets 
+                    : mockAssets.filter(asset => asset.type === filterType);
+
+                container.innerHTML = filteredAssets.slice(0, 6).map(asset => `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all duration-200 cursor-pointer"
+                         onclick="app.openAssetDetail('${asset.id}')">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <span class="text-sm">${this.getAssetIcon(asset.type)}</span>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-semibold text-gray-900 truncate">${asset.name}</h4>
+                                <p class="text-xs text-gray-500">${asset.type.replace('-', ' ')}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-bold text-gray-900">${asset.complianceScore}%</div>
+                                <div class="asset-status-indicator ${this.getComplianceStatus(asset.complianceScore)}"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>Risks: ${this.getTotalRiskCount(asset.riskCount)}</span>
+                            <span class="capitalize">${asset.attributes.hosting}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderRequirementsStatus() {
+                console.log('Rendering requirements status');
+                const container = document.getElementById('requirements-status-list');
+                if (!container) {
+                    console.error('Requirements status container not found');
+                    return;
+                }
+                const allRequirements = [
+                    ...mockRequirements.security,
+                    ...mockRequirements.architecture,
+                    ...mockRequirements.quality
+                ].slice(0, 6);
+
+                container.innerHTML = allRequirements.map(req => `
+                    <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                         onclick="app.openRequirementDetail('${req.id}')">
+                        <div class="domain-indicator ${req.domain}"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">${req.title}</p>
+                            <p class="text-xs text-gray-500">${req.priority}</p>
+                        </div>
+                        <div class="text-xs text-gray-400">${req.domain}</div>
+                    </div>
+                `).join('');
+            }
+
+            renderAssessmentPipeline() {
+                console.log('Rendering assessment pipeline');
+                const container = document.getElementById('assessment-pipeline');
+                if (!container) {
+                    console.error('Assessment pipeline container not found');
+                    return;
+                }
+                const pipeline = [
+                    { stage: 'Queue', count: 5, color: 'bg-gray-500' },
+                    { stage: 'In Progress', count: 8, color: 'bg-blue-500' },
+                    { stage: 'Review', count: 3, color: 'bg-yellow-500' },
+                    { stage: 'Complete', count: 12, color: 'bg-green-500' }
+                ];
+
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-600">This Month</span>
+                            <span class="font-medium">28 Total</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            ${pipeline.map(stage => `
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 rounded-full ${stage.color}"></div>
+                                        <span class="text-sm text-gray-900">${stage.stage}</span>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">${stage.count}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <button class="w-full text-center text-blue-600 hover:text-blue-800 text-sm font-medium pt-2 border-t border-gray-200">
+                            View Full Pipeline →
+                        </button>
+                    </div>
+                `;
+            }
+
+            openActivityDetail(type) {
+                this.openSidebar();
+                this.renderSidebarContent('activity', { type });
+                this.trackInteraction('activity_detail');
+            }
+
+            openDetailView(view) {
+                this.openSidebar();
+                this.renderSidebarContent(view, {});
+                this.trackInteraction('detail_view');
+            }
+
+            openAssetDetail(assetId) {
+                const asset = mockAssets.find(a => a.id === assetId);
+                if (asset) {
+                    this.openSidebar();
+                    this.renderSidebarContent('asset', asset);
+                    this.trackInteraction('asset_detail');
+                }
+            }
+
+            openRequirementDetail(requirementId) {
+                this.openSidebar();
+                this.renderSidebarContent('requirement', { id: requirementId });
+                this.trackInteraction('requirement_detail');
+            }
+
+            // Utility methods
+            getTaskIcon(type) {
+                const icons = {
+                    review: '👁️',
+                    assessment: '📋',
+                    documentation: '📝',
+                    implementation: '🔧',
+                    approval: '✅'
+                };
+                return icons[type] || '📋';
+            }
+
+            getActivityIcon(type) {
+                const icons = {
+                    assessment: '📋',
+                    risk: '⚠️',
+                    requirement: '📄',
+                    compliance: '📊'
+                };
+                return icons[type] || '📋';
+            }
+
+            getPriorityClass(priority) {
+                const classes = {
+                    High: 'bg-red-100 text-red-800',
+                    Medium: 'bg-yellow-100 text-yellow-800',
+                    Low: 'bg-green-100 text-green-800'
+                };
+                return classes[priority] || 'bg-gray-100 text-gray-800';
+            }
+
+            getAssetIcon(type) {
+                const icons = {
+                    'api': '🔌',
+                    'web-app': '🌐',
+                    'mobile-app': '📱',
+                    'platform': '🏗️'
+                };
+                return icons[type] || '📦';
+            }
+
+            getComplianceStatus(score) {
+                if (score >= 90) return 'excellent';
+                if (score >= 80) return 'good';
+                if (score >= 70) return 'fair';
+                return 'poor';
+            }
+
+            getTotalRiskCount(riskCount) {
+                if (!riskCount) return 0;
+                return riskCount.critical + riskCount.high + riskCount.medium + riskCount.low;
+            }
+
+            trackInteraction(action) {
+                this.navigationAnalytics.interactions++;
+                this.navigationAnalytics.popularActions[action] = 
+                    (this.navigationAnalytics.popularActions[action] || 0) + 1;
+                this.updateAnalytics();
+            }
+
+            updateAnalytics() {
+                const sessionTime = Math.floor((Date.now() - this.navigationAnalytics.startTime) / 1000);
+                const mostPopular = Object.keys(this.navigationAnalytics.popularActions)
+                    .reduce((a, b) => 
+                        this.navigationAnalytics.popularActions[a] > this.navigationAnalytics.popularActions[b] ? a : b,
+                        'Dashboard'
+                    );
+
+                document.getElementById('analytics-interactions').textContent = this.navigationAnalytics.interactions;
+                document.getElementById('analytics-time').textContent = sessionTime;
+                document.getElementById('analytics-popular').textContent = mostPopular;
+            }
+
+            startRealTimeUpdates() {
+                // Simulate real-time updates
+                setInterval(() => {
+                    // Update compliance average slightly
+                    const currentScore = parseInt(document.getElementById('compliance-average-metric').textContent);
+                    const newScore = Math.max(70, Math.min(95, currentScore + (Math.random() - 0.5) * 2));
+                    document.getElementById('compliance-average-metric').textContent = Math.round(newScore) + '%';
+                    
+                    // Update active risks count occasionally
+                    if (Math.random() > 0.95) {
+                        const currentRisks = parseInt(document.getElementById('active-risks-metric').textContent);
+                        const newRisks = Math.max(15, Math.min(30, currentRisks + (Math.random() > 0.5 ? 1 : -1)));
+                        document.getElementById('active-risks-metric').textContent = newRisks;
+                    }
+                }, 5000);
+
+                // Update analytics every second
+                setInterval(() => this.updateAnalytics(), 1000);
+            }
+        }
+
+        // Initialize the application
+        const app = new UnifiedDashboardApp();
+        
+        // Make app globally accessible for onclick handlers
+        window.app = app;
+        
+        // Fallback to ensure widgets are visible if JavaScript fails
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, checking widget visibility');
+            const widgets = document.querySelectorAll('[id^="widget-"]');
+            const widgetGrid = document.getElementById('widget-grid');
+            
+            console.log(`Found ${widgets.length} widgets`);
+            
+            if (widgetGrid) {
+                widgetGrid.style.display = 'grid';
+                console.log('Widget grid made visible');
+            }
+            
+            widgets.forEach((widget, index) => {
+                console.log(`Making widget ${index + 1} visible:`, widget.id);
+                widget.style.display = 'block';
+                widget.classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

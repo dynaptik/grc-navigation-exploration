@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain-Centric Excellence Centers - GRC Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        [x-cloak] { display: none !important; }
+        .domain-tab {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .domain-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: currentColor;
+            border-radius: 2px 2px 0 0;
+        }
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="simpleDomainApp()" x-init="console.log('Alpine initialized')">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-bold text-gray-900">GRC Portal</h1>
+                    <div class="text-sm text-gray-500">Domain-Centric Excellence Centers</div>
+                </div>
+                
+                <!-- Role Selector -->
+                <div class="flex items-center space-x-4">
+                    <select x-model="currentRole" @change="updateRole()" class="text-sm border border-gray-300 rounded-md px-2 py-1">
+                        <option value="architect">Software Architect</option>
+                        <option value="developer">Developer</option>
+                        <option value="manager">IT Manager</option>
+                    </select>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-medium" x-text="currentRole.charAt(0).toUpperCase()"></span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 capitalize" x-text="currentRole"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Domain Tabs Navigation -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="px-6">
+            <nav class="flex space-x-8">
+                <template x-for="domain in domains" :key="domain.id">
+                    <button 
+                        @click="activeDomain = domain.id"
+                        :class="[
+                            'domain-tab py-4 px-3 text-sm font-medium transition-all duration-300',
+                            activeDomain === domain.id ? 'active' : 'text-gray-500 hover:text-gray-700'
+                        ]"
+                        :style="activeDomain === domain.id ? `color: ${domain.color}` : ''"
+                    >
+                        <div class="flex items-center space-x-2">
+                            <span x-text="domain.icon"></span>
+                            <span x-text="domain.name"></span>
+                            <span 
+                                class="px-2 py-0.5 rounded-full text-xs font-medium"
+                                :class="activeDomain === domain.id ? 'text-white' : 'bg-gray-100 text-gray-600'"
+                                :style="activeDomain === domain.id ? `background-color: ${domain.color}` : ''"
+                                x-text="domain.requirementCount"
+                            ></span>
+                        </div>
+                    </button>
+                </template>
+                
+                <!-- Cross-Domain View -->
+                <button 
+                    @click="activeDomain = 'cross-domain'"
+                    :class="[
+                        'domain-tab py-4 px-3 text-sm font-medium transition-all duration-300',
+                        activeDomain === 'cross-domain' ? 'active text-purple-600' : 'text-gray-500 hover:text-gray-700'
+                    ]"
+                >
+                    <div class="flex items-center space-x-2">
+                        <span>🔗</span>
+                        <span>Cross-Domain</span>
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-600">
+                            Portfolio
+                        </span>
+                    </div>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+        <!-- Domain-Specific Dashboard -->
+        <div x-show="activeDomain !== 'cross-domain'">
+            <!-- Domain Header -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                            <span x-text="getDomainData().name"></span> Excellence Center
+                        </h2>
+                        <p class="text-gray-600" x-text="getDomainData().description"></p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold" 
+                             :style="`color: ${getDomainData().color}`"
+                             x-text="getDomainData().requirementCount">
+                        </div>
+                        <div class="text-sm text-gray-500">Active Requirements</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Domain Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-all duration-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900">24</div>
+                            <div class="text-sm text-gray-500">Total Standards</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                             :style="`background-color: ${getDomainData().color}20; color: ${getDomainData().color}`">
+                            📋
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-all duration-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900">87%</div>
+                            <div class="text-sm text-gray-500">Avg Compliance</div>
+                        </div>
+                        <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                            ✅
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-all duration-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900">3</div>
+                            <div class="text-sm text-gray-500">Active Assessments</div>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                            📊
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-all duration-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900" x-text="mockAssets.length"></div>
+                            <div class="text-sm text-gray-500">Assets Affected</div>
+                        </div>
+                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                            🏗️
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Domain Content -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Requirements Section -->
+                <div class="bg-white rounded-lg border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Domain Requirements</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <template x-for="req in getDomainRequirements()" :key="req.id">
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <h4 class="font-semibold text-gray-900" x-text="req.title"></h4>
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium"
+                                              :class="req.mandatory ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'"
+                                              x-text="req.mandatory ? 'Mandatory' : 'Recommended'"></span>
+                                    </div>
+                                    <p class="text-gray-600 text-sm" x-text="req.description"></p>
+                                    <div class="mt-3 flex items-center justify-between">
+                                        <div class="text-xs text-gray-500" x-text="`Applies to: ${req.assetTypes.join(', ')}`"></div>
+                                        <button class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                                            View Details →
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assets Section -->
+                <div class="bg-white rounded-lg border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Relevant Assets</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <template x-for="asset in mockAssets.slice(0, 3)" :key="asset.id">
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                                <span x-text="getAssetIcon(asset.type)"></span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-semibold text-gray-900" x-text="asset.name"></h4>
+                                                <p class="text-xs text-gray-500" x-text="asset.type"></p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-semibold text-gray-900" x-text="asset.complianceScore + '%'"></div>
+                                            <div class="text-xs text-gray-500">Compliance</div>
+                                        </div>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-500 h-2 rounded-full" :style="`width: ${asset.complianceScore}%`"></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cross-Domain Portfolio View -->
+        <div x-show="activeDomain === 'cross-domain'">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Cross-Domain Asset Portfolio</h2>
+                <p class="text-gray-600">View assets and their compliance across all governance domains</p>
+            </div>
+
+            <div class="bg-white rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">Asset Portfolio</h3>
+                        <div class="text-sm text-gray-500">
+                            <span x-text="mockAssets.length"></span> assets • Role: <span class="font-medium capitalize" x-text="currentRole"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <template x-for="asset in mockAssets" :key="asset.id">
+                            <div class="bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200">
+                                <div class="p-6">
+                                    <div class="flex items-start justify-between mb-4">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                                <span x-text="getAssetIcon(asset.type)"></span>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-sm font-semibold text-gray-900" x-text="asset.name"></h3>
+                                                <p class="text-xs text-gray-500" x-text="asset.type"></p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-semibold text-gray-900" x-text="asset.complianceScore + '%'"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Domain Compliance Bars -->
+                                    <div class="space-y-2 mb-4">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="flex items-center">
+                                                <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                                                Security
+                                            </span>
+                                            <span class="font-medium">85%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-red-500 h-1.5 rounded-full" style="width: 85%"></div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="flex items-center">
+                                                <span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+                                                Architecture
+                                            </span>
+                                            <span class="font-medium">78%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-blue-500 h-1.5 rounded-full" style="width: 78%"></div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="flex items-center">
+                                                <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                                                Quality
+                                            </span>
+                                            <span class="font-medium">92%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 92%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                                        <div class="text-xs text-gray-600" x-text="'Last assessed: ' + asset.lastAssessed"></div>
+                                        <button class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                                            View Details →
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function simpleDomainApp() {
+            return {
+                currentRole: 'developer',
+                activeDomain: 'security',
+                
+                domains: [
+                    { 
+                        id: 'security', 
+                        name: 'Security', 
+                        icon: '🔒', 
+                        color: '#EF4444',
+                        description: 'Information security and data protection standards',
+                        requirementCount: 15
+                    },
+                    { 
+                        id: 'architecture', 
+                        name: 'Architecture', 
+                        icon: '🏗️', 
+                        color: '#3B82F6',
+                        description: 'System design and architectural principles',
+                        requirementCount: 12
+                    },
+                    { 
+                        id: 'quality', 
+                        name: 'Quality', 
+                        icon: '✅', 
+                        color: '#10B981',
+                        description: 'Quality assurance and testing standards',
+                        requirementCount: 18
+                    }
+                ],
+
+                mockAssets: [
+                    {
+                        id: 'asset-1',
+                        name: 'Customer Portal API',
+                        type: 'api',
+                        complianceScore: 85,
+                        lastAssessed: '2024-01-15'
+                    },
+                    {
+                        id: 'asset-2',
+                        name: 'Mobile Banking App',
+                        type: 'mobile-app',
+                        complianceScore: 92,
+                        lastAssessed: '2024-01-10'
+                    },
+                    {
+                        id: 'asset-3',
+                        name: 'Analytics Dashboard',
+                        type: 'web-app',
+                        complianceScore: 78,
+                        lastAssessed: '2024-01-08'
+                    },
+                    {
+                        id: 'asset-4',
+                        name: 'Payment Gateway',
+                        type: 'api',
+                        complianceScore: 95,
+                        lastAssessed: '2024-01-12'
+                    }
+                ],
+
+                mockRequirements: {
+                    security: [
+                        {
+                            id: 'sec-001',
+                            title: 'Multi-Factor Authentication',
+                            description: 'All user-facing applications must implement MFA for account access',
+                            mandatory: true,
+                            assetTypes: ['web-app', 'mobile-app', 'api']
+                        },
+                        {
+                            id: 'sec-002',
+                            title: 'Data Encryption at Rest',
+                            description: 'Sensitive data must be encrypted using AES-256 or equivalent',
+                            mandatory: true,
+                            assetTypes: ['api', 'database']
+                        },
+                        {
+                            id: 'sec-003',
+                            title: 'API Rate Limiting',
+                            description: 'Public APIs should implement rate limiting to prevent abuse',
+                            mandatory: false,
+                            assetTypes: ['api']
+                        }
+                    ],
+                    architecture: [
+                        {
+                            id: 'arch-001',
+                            title: 'API-First Design',
+                            description: 'New services should be designed API-first for maximum reusability',
+                            mandatory: false,
+                            assetTypes: ['api', 'microservice']
+                        },
+                        {
+                            id: 'arch-002',
+                            title: 'Circuit Breaker Pattern',
+                            description: 'Services calling external dependencies must implement circuit breakers',
+                            mandatory: true,
+                            assetTypes: ['api', 'microservice']
+                        }
+                    ],
+                    quality: [
+                        {
+                            id: 'qa-001',
+                            title: 'Code Coverage Minimum',
+                            description: 'All production code must maintain minimum 80% test coverage',
+                            mandatory: true,
+                            assetTypes: ['web-app', 'mobile-app', 'api']
+                        },
+                        {
+                            id: 'qa-002',
+                            title: 'Performance Testing',
+                            description: 'Load testing required for all customer-facing applications',
+                            mandatory: true,
+                            assetTypes: ['web-app', 'api']
+                        }
+                    ]
+                },
+
+                updateRole() {
+                    console.log('Role changed to:', this.currentRole);
+                },
+
+                getDomainData() {
+                    return this.domains.find(d => d.id === this.activeDomain) || this.domains[0];
+                },
+
+                getDomainRequirements() {
+                    return this.mockRequirements[this.activeDomain] || [];
+                },
+
+                getAssetIcon(type) {
+                    const icons = {
+                        'api': '🔌',
+                        'web-app': '🌐',
+                        'mobile-app': '📱',
+                        'microservice': '⚙️',
+                        'database': '💾'
+                    };
+                    return icons[type] || '📦';
+                }
+            };
+        }
+    </script>
+</body>
+</html>
